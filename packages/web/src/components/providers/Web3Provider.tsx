@@ -32,7 +32,7 @@ const unichainTestnet = {
 } as const;
 
 const config = getDefaultConfig({
-  appName: 'TradeDesk',
+  appName: 'Alpha402',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '732e4d29e7127e7f7b3e3e3e3e3e3e3e',
   chains: [unichainTestnet, mainnet, sepolia],
   ssr: true,
@@ -46,6 +46,14 @@ const config = getDefaultConfig({
 const queryClient = new QueryClient();
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>

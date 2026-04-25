@@ -1,3 +1,9 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: [
@@ -18,7 +24,7 @@ const nextConfig = {
       };
       config.resolve.alias = {
         ...config.resolve.alias,
-        '@react-native-async-storage/async-storage': false,
+        '@react-native-async-storage/async-storage': path.resolve(__dirname, 'src/lib/async-storage-polyfill.js'),
       };
     }
     return config;

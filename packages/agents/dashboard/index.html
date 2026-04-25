@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha402 | Agent Dashboard</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #00ff88;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .controls {
+            width: 350px;
+            padding: 20px;
+            border-right: 1px solid #333;
+            background: #111;
+        }
+        .log-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse; /* Latest at top */
+        }
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-left: 2px solid #555;
+            background: #161616;
+            animation: fadeIn 0.3s ease;
+        }
+        .log-entry.commander { border-color: #0088ff; }
+        .log-entry.intel { border-color: #ffcc00; }
+        .log-entry.risk { border-color: #ff3300; }
+        .log-entry.execution { border-color: #aa00ff; }
+        
+        .role { font-weight: bold; text-transform: uppercase; margin-right: 10px; font-size: 0.8em; }
+        .timestamp { color: #888; font-size: 0.8em; margin-right: 10px; }
+        
+        input, button, textarea {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #00ff88;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover { background: #00cc66; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #555; margin-right: 5px; }
+        .status-dot.online { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <span id="status-dot" class="status-dot"></span>
+            ALPHA402 <span style="color: #666; font-size: 0.8em;">[AGENT_COMM_BUS]</span>
+        </div>
+        <div style="font-size: 0.8em; color: #888;">WS://LOCALHOST:3001</div>
+    </header>
+
+    <div class="container">
+        <div class="controls">
+            <h3>NEW STRATEGY</h3>
+            <textarea id="strategy-input" rows="4" placeholder="Enter intent (e.g. Buy ETH when it dips below $3000)"></textarea>
+            <button id="send-btn">DEPLOY STRATEGY</button>
+            <hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
+            <h3>QUICK ACTIONS</h3>
+            <button onclick="sendQuick('Buy 0.1 ETH when gas is below 20 gwei')">GAS WATCHER</button>
+            <button onclick="sendQuick('Sell all BTC if price goes above $100000')">PROFIT TAKER</button>
+        </div>
+        <div id="logs" class="log-container">
+            <!-- Logs appear here -->
+        </div>
+    </div>
+
+    <script>
+        const logs = document.getElementById('logs');
+        const input = document.getElementById('strategy-input');
+        const sendBtn = document.getElementById('send-btn');
+        const statusDot = document.getElementById('status-dot');
+
+        let ws;
+
+        function connect() {
+            ws = new WebSocket('ws://localhost:3001');
+
+            ws.onopen = () => {
+                statusDot.classList.add('online');
+                addLog('system', 'WebSocket Connected to Agent Bus');
+            };
+
+            ws.onclose = () => {
+                statusDot.classList.remove('online');
+                addLog('system', 'Disconnected. Retrying in 3s...');
+                setTimeout(connect, 3000);
+            };
+
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'HISTORY') {
+                    msg.data.forEach(m => addLog(m.from, JSON.stringify(m.payload), m.timestamp, m.type));
+                } else if (msg.type === 'A2A_MESSAGE') {
+                    addLog(msg.data.from, JSON.stringify(msg.data.payload), msg.data.timestamp, msg.data.type);
+                }
+            };
+        }
+
+        function addLog(from, content, ts = Date.now(), type = '') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${from}`;
+            
+            const timeStr = new Date(ts).toLocaleTimeString();
+            
+            entry.innerHTML = `
+                <span class="timestamp">[${timeStr}]</span>
+                <span class="role">${from}</span>
+                <span style="color: #666;">${type}</span>
+                <div style="margin-top:5px; color: #ccc;">${content}</div>
+            `;
+            
+            logs.insertBefore(entry, logs.firstChild);
+        }
+
+        sendBtn.onclick = () => {
+            const val = input.value.trim();
+            if(!val) return;
+            ws.send(JSON.stringify({
+                type: 'PARSE_STRATEGY',
+                input: val,
+                owner: 'local_dashboard'
+            }));
+            input.value = '';
+        };
+
+        function sendQuick(text) {
+            input.value = text;
+            sendBtn.click();
+        }
+
+        connect();
+    </script>
+</body>
+</html>

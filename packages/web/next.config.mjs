@@ -24,6 +24,7 @@ const nextConfig = {
       };
       config.resolve.alias = {
         ...config.resolve.alias,
+        'three': path.resolve(__dirname, '../../node_modules/three'),
         '@react-native-async-storage/async-storage': path.resolve(__dirname, 'src/lib/async-storage-polyfill.js'),
       };
     }

@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TradeDesk | Autonomous Trading Crew",
+  title: "Alpha402 | Autonomous Trading Crew",
   description: "Deploy a team of AI agents that watches the market, manages risk, and executes trades on Uniswap v4.",
 };
 

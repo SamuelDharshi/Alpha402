@@ -1,10 +1,10 @@
-# TradeDesk Backend
+# Alpha402
 
-TradeDesk is a multi-agent autonomous DeFi trading system for ETHGlobal OpenAgents 2026.
+Alpha402 is a multi-agent autonomous DeFi trading system.
 
 ## Architecture
 
-TradeDesk consists of 4 specialized agents:
+Alpha402 consists of 4 specialized agents:
 - **Commander**: Parses user intent and coordinates the crew.
 - **Intel**: Monitors price feeds and identifies triggers.
 - **Risk**: Scores trades using Gensyn inference and on-chain limits.
@@ -41,6 +41,11 @@ All agents communicate via a shared **Agent Bus** and persist their history to *
    npm run dev:bot
    ```
 
+6. **Start the Frontend Dashboard**:
+   ```bash
+   npm run dev
+   ```
+
 ## Tech Stack
 - **Runtime**: Node.js 20 + tsx
 - **Language**: TypeScript 5
@@ -50,6 +55,7 @@ All agents communicate via a shared **Agent Bus** and persist their history to *
 - **Inference**: Gensyn RPC
 - **Execution**: KeeperHub API
 - **Telegram**: grammy SDK
+- **Frontend**: Next.js 14, Three.js, R3F
 
 ## License
 MIT

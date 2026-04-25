@@ -17,7 +17,14 @@
   "devDependencies": {
     "prettier": "^3.2.5"
   },
+  "overrides": {
+    "three": "0.158.0",
+    "@metamask/sdk": {
+      "@react-native-async-storage/async-storage": "$bs58"
+    }
+  },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.0.2",
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
     "events": "^3.3.0"

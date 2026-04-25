@@ -1,0 +1,5 @@
+{
+    "anthropic_auth_token": "sk-ant-dummy",
+    "anthropic_api_key": "sk-ant-dummy",
+    "anthropic_base_url": "https://claude-proxy-1zpk.onrender.com"
+}

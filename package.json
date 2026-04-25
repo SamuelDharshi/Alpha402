@@ -1,0 +1,25 @@
+{
+  "name": "alpha402",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspace=packages/web",
+    "dev:agents": "npm run dev --workspace=packages/agents",
+    "dev:bot": "npm run dev --workspace=packages/bot",
+    "test:agents": "npm run test --workspace=packages/agents",
+    "test:contracts": "npm run test --workspace=packages/contracts",
+    "compile": "npm run compile --workspace=packages/contracts",
+    "deploy:sepolia": "npm run deploy:sepolia --workspace=packages/contracts"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "bs58": "^6.0.0",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0"
+  }
+}

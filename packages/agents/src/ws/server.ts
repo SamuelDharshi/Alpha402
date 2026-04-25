@@ -1,0 +1,54 @@
+import { WebSocketServer } from 'ws';
+import { AgentBus } from '../bus/index.js';
+
+export function startWSServer(bus: AgentBus, commander?: any) {
+  const wss = new WebSocketServer({ port: 3001 });
+
+  // BigInt-safe serializer for WebSockets
+  const safeStringify = (obj: any) => JSON.stringify(obj, (_key, value) =>
+    typeof value === 'bigint' ? value.toString() + 'n' : value
+  );
+
+  wss.on('connection', (ws) => {
+    console.log('[WS] Dashboard connected');
+
+    // Send last 100 messages on connect so dashboard shows history
+    const history = bus.getHistory().slice(-100);
+    ws.send(safeStringify({ type: 'HISTORY', data: history }));
+
+    // Forward all new agent messages to the dashboard
+    const listener = (msg: any) => {
+      if (ws.readyState === ws.OPEN) {
+        ws.send(safeStringify({ type: 'A2A_MESSAGE', data: msg }));
+      }
+    };
+    bus.on('message', listener);
+
+    // Accept inbound commands from dashboard
+    ws.on('message', async (raw) => {
+      try {
+        const cmd = JSON.parse(raw.toString());
+
+        if (cmd.type === 'PARSE_STRATEGY' && commander) {
+          console.log(`[WS] Received strategy from dashboard: "${cmd.input}"`);
+          await commander.parseStrategy(cmd.input, cmd.owner ?? 'dashboard_user');
+        }
+
+        if (cmd.type === 'PING') {
+          ws.send(JSON.stringify({ type: 'PONG', ts: Date.now() }));
+        }
+      } catch (err) {
+        console.error('[WS] Bad message from dashboard:', err);
+      }
+    });
+
+    ws.on('close', () => {
+      bus.off('message', listener);
+      console.log('[WS] Dashboard disconnected');
+    });
+
+    ws.on('error', (err) => console.error('[WS] Socket error:', err));
+  });
+
+  console.log('[WS] Server running on ws://localhost:3001');
+}

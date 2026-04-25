@@ -1,61 +1,110 @@
-# Alpha402
+# Alpha402 (formerly TradeDesk)
 
-Alpha402 is a multi-agent autonomous DeFi trading system.
+Alpha402 is an autonomous multi-agent DeFi trading system built for the ETHGlobal Open Agents 2026 hackathon. It utilizes a crew of specialized AI agents to execute intent-based trading strategies on Uniswap v4 via Unichain, leveraging cutting-edge sponsor technologies for storage, communication, and execution.
 
-## Architecture
+## 🚀 Overview
 
-Alpha402 consists of 4 specialized agents:
-- **Commander**: Parses user intent and coordinates the crew.
-- **Intel**: Monitors price feeds and identifies triggers.
-- **Risk**: Scores trades using Gensyn inference and on-chain limits.
-- **Execution**: Executes trades on Uniswap v4 via KeeperHub.
+The Alpha402 platform allows users to deploy a personalized fleet of AI agents using natural language. Instead of manually monitoring charts and worrying about MEV extraction, users simply message the Telegram bot (e.g., "Buy 1 ETH when the price dips below $3000"). The agent crew handles the rest: watching price feeds 24/7, scoring the risk of the trade, and executing the transaction securely.
 
-All agents communicate via a shared **Agent Bus** and persist their history to **0G Storage**.
+### Core Features
 
-## Quickstart
+- **Intent-Based Trading:** Define strategies in plain English via Telegram.
+- **Multi-Agent Orchestration:** A specialized crew (Commander, Intel, Risk, Execution) handles parsing, monitoring, risk assessment, and execution.
+- **DeFi Execution:** Integrates with Uniswap v4 hooks for precise trading.
+- **Cyberpunk 3D Dashboard:** A visually stunning React Three Fiber (R3F) dashboard to monitor your agents' activity and x402 micropayments in real-time.
 
-1. **Install dependencies**:
+## 🛠️ Technology Stack
+
+- **Frontend:** Next.js 14, TailwindCSS, React Three Fiber (R3F), Zustand
+- **Backend/Agents:** Node.js, `tsx`, ethers.js, Groq SDK
+- **Blockchain/Infrastructure:**
+  - **Unichain:** Target network for low-latency DeFi execution.
+  - **0G Storage:** Decentralized logging and state persistence for agents.
+  - **Gensyn AXL:** P2P mesh communication layer between agents.
+  - **KeeperHub:** Reliable, MEV-protected transaction execution.
+  - **Uniswap v4:** Trading and liquidity hooks.
+
+## 🤖 Multi-Agent Workflow Sequence
+
+The system operates through a coordinated sequence of agent interactions:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Bot as Telegram Bot
+    participant CMD as Commander Agent
+    participant INT as Intel Agent
+    participant RSK as Risk Agent
+    participant EXC as Execution Agent
+    participant KH as KeeperHub / Chain
+
+    User->>Bot: "Buy 1 ETH when price < $3000"
+    Bot->>CMD: Forward intent
+    CMD->>CMD: Parse intent into JSON Strategy
+    CMD->>INT: Deploy monitoring task (Strategy ID)
+    
+    loop Every 10 Seconds
+        INT->>INT: Poll DexScreener API (x402 payment)
+    end
+    
+    Note over INT: Price drops below $3000
+    INT->>CMD: Trigger Condition Met
+    CMD->>RSK: Request Risk Score
+    
+    RSK->>RSK: Run decentralized inference (Gensyn)
+    Note over RSK: Evaluates slippage, liquidity, MEV risk
+    RSK-->>CMD: Risk Score: APPROVED
+    
+    CMD->>EXC: Execute Trade (Strategy ID)
+    EXC->>KH: Submit signed transaction
+    KH-->>EXC: Transaction Confirmed
+    EXC-->>CMD: Execution Success
+    CMD-->>Bot: "Trade executed successfully! P&L tracked."
+    Bot-->>User: Notification sent
+```
+
+## 🏗️ Project Structure
+
+- `packages/frontend/`: The Next.js 14 Web3 dashboard with a fully interactive 3D command center.
+- `packages/agents/`: The backend agent crew logic, managing the AXL P2P mesh and LLM inference.
+- `packages/bot/`: The Telegram bot interface for interacting with the system.
+- `packages/contracts/`: Hardhat workspace for custom Uniswap v4 hooks and Alpha402 payment contracts.
+- `packages/shared/`: Shared TypeScript types, utility functions, and constants.
+
+## 🏃 Getting Started
+
+### Prerequisites
+- Node.js (v20+)
+- npm
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SamuelDharshi/Alpha402.git
+   cd Alpha402
+   ```
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. **Configure environment**:
-   Copy `.env.example` to `.env` and fill in the required keys.
-   ```bash
-   cp .env.example .env
-   ```
+### Running the Project locally
+The system requires both the backend agents and the frontend dashboard to run simultaneously.
 
-3. **Deploy Smart Contracts**:
+1. **Start the Agent Backend:**
    ```bash
-   cd packages/contracts
-   forge script script/Deploy.s.sol --rpc-url $UNICHAIN_RPC_URL --broadcast
-   ```
-
-4. **Start the Agent System**:
-   ```bash
-   npm run dev:agents
-   ```
-
-5. **Start the Telegram Bot**:
-   ```bash
-   npm run dev:bot
-   ```
-
-6. **Start the Frontend Dashboard**:
-   ```bash
+   cd packages/agents
    npm run dev
    ```
+   *(This starts the Commander, Intel, Risk, and Execution agents and exposes the WebSocket server on port 3001).*
 
-## Tech Stack
-- **Runtime**: Node.js 20 + tsx
-- **Language**: TypeScript 5
-- **Contracts**: Solidity 0.8.24 (Foundry)
-- **Agents**: OpenAI SDK, Ethers.js
-- **Storage**: 0G Labs SDK
-- **Inference**: Gensyn RPC
-- **Execution**: KeeperHub API
-- **Telegram**: grammy SDK
-- **Frontend**: Next.js 14, Three.js, R3F
+2. **Start the Frontend Dashboard:**
+   In a new terminal window:
+   ```bash
+   cd packages/frontend
+   npm run dev
+   ```
+   *(The dashboard will be available at `http://localhost:3000`).*
 
-## License
+## 📜 License
 MIT

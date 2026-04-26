@@ -65,11 +65,11 @@ sequenceDiagram
 
 ## 🏗️ Project Structure
 
-- `packages/frontend/`: The Next.js 14 Web3 dashboard with a fully interactive 3D command center.
-- `packages/agents/`: The backend agent crew logic, managing the AXL P2P mesh and LLM inference.
-- `packages/bot/`: The Telegram bot interface for interacting with the system.
-- `packages/contracts/`: Hardhat workspace for custom Uniswap v4 hooks and Alpha402 payment contracts.
-- `packages/shared/`: Shared TypeScript types, utility functions, and constants.
+- `frontend/`: The Next.js 14 Web3 dashboard with a fully interactive 3D command center.
+- `agents/`: The backend agent crew logic, managing the AXL P2P mesh and LLM inference.
+- `bot/`: The Telegram bot interface for interacting with the system.
+- `contracts/`: Hardhat workspace for custom Uniswap v4 hooks and Alpha402 payment contracts.
+- `shared/`: Shared TypeScript types, utility functions, and constants.
 
 ## 🏃 Getting Started
 
@@ -87,24 +87,32 @@ sequenceDiagram
    ```bash
    npm install
    ```
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Fill in the required keys in .env
+   ```
 
 ### Running the Project locally
-The system requires both the backend agents and the frontend dashboard to run simultaneously.
+The system is managed from the root directory using npm workspaces.
 
 1. **Start the Agent Backend:**
    ```bash
-   cd packages/agents
-   npm run dev
+   npm run dev:agents
    ```
    *(This starts the Commander, Intel, Risk, and Execution agents and exposes the WebSocket server on port 3001).*
 
 2. **Start the Frontend Dashboard:**
    In a new terminal window:
    ```bash
-   cd packages/frontend
    npm run dev
    ```
    *(The dashboard will be available at `http://localhost:3000`).*
+
+3. **Start the Telegram Bot (Optional):**
+   ```bash
+   npm run dev:bot
+   ```
 
 ## 📜 License
 MIT

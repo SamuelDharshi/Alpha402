@@ -2,29 +2,30 @@
   "name": "alpha402",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "agents",
+    "bot",
+    "contracts",
+    "shared",
+    "frontend"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev": "npm run dev --workspace=packages/web",
-    "dev:agents": "npm run dev --workspace=packages/agents",
-    "dev:bot": "npm run dev --workspace=packages/bot",
-    "test:agents": "npm run test --workspace=packages/agents",
-    "test:contracts": "npm run test --workspace=packages/contracts",
-    "compile": "npm run compile --workspace=packages/contracts",
-    "deploy:sepolia": "npm run deploy:sepolia --workspace=packages/contracts"
+    "dev": "npm run dev --workspace=frontend",
+    "dev:agents": "npm run dev --workspace=agents",
+    "dev:bot": "npm run dev --workspace=bot",
+    "test:agents": "npm run test --workspace=agents",
+    "test:contracts": "npm run test --workspace=contracts",
+    "compile": "npm run compile --workspace=contracts",
+    "deploy:sepolia": "npm run deploy:sepolia --workspace=contracts"
   },
   "devDependencies": {
     "prettier": "^3.2.5"
   },
   "overrides": {
     "three": "0.176.0",
-    "@metamask/sdk": {
-      "@react-native-async-storage/async-storage": "$bs58"
-    }
+    "three-mesh-bvh": "0.8.0"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^3.0.2",
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
     "events": "^3.3.0",

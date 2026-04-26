@@ -1,0 +1,17 @@
+# Hardhat
+node_modules/
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+.openzeppelin/
+
+# Foundry
+lib/
+out/
+broadcast/
+cache/
+
+# Environment
+.env

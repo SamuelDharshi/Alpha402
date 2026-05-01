@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
 import { RiskScore } from '@alpha402/shared';
+import { callWithBroker } from '../../ai/zeroGCompute.js';
 
 export class RiskAgent {
   private bus: AgentBus;
@@ -27,7 +28,9 @@ export class RiskAgent {
   }
 
   async init() {
-    this.bus.on('RISK_SCORING', (msg) => this.scoreTrade(msg.strategyId, msg.payload));
+    this.bus.on('RISK_SCORING', (msg: { strategyId: string; payload: any }) =>
+      this.scoreTrade(msg.strategyId, msg.payload)
+    );
     console.log('[Risk] Online and ready to score trades...');
   }
 
@@ -64,8 +67,8 @@ export class RiskAgent {
       }
     }
 
-    // ── Groq LLM risk scoring (free tier, replaces Gensyn) ──────────
-    const score = await this.runGroqInference(strategyId, triggerPayload, gasPriceGwei);
+    // ── 0G Compute Network risk scoring (TEE-verified inference) ─────
+    const score = await this.run0GInference(strategyId, triggerPayload, gasPriceGwei);
 
     if (score.verdict === 'APPROVE') {
       await this.approve(strategyId, score);
@@ -74,58 +77,41 @@ export class RiskAgent {
     }
   }
 
-  private async runGroqInference(
+  private async run0GInference(
     strategyId: string,
     payload: any,
     gasPriceGwei: number
   ): Promise<RiskScore> {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      // No key → conservative approve (gas already checked above)
-      console.warn('[Risk] GROQ_API_KEY not set — auto-approving (gas passed)');
-      return {
-        score: 7,
-        reasoning: 'Groq key not configured — auto-approved because hard limits passed.',
-        verdict: 'APPROVE',
-      };
-    }
-
     try {
-      const { Groq } = await import('groq-sdk');
-      const groq = new Groq({ apiKey });
-
-      console.log('[Risk] Calling Groq for risk inference...');
+      console.log('[Risk] Calling 0G Compute Network for risk analysis (TEE-verified)...');
 
       const prompt = `You are a DeFi trade risk analyst.
 Evaluate this trade and return a JSON object with exactly these keys:
 - score: integer 1-10 (10 = safest)
-- reasoning: one sentence
+- reasoning: one sentence explaining the risk
 - verdict: "APPROVE" if score >= 6 else "REJECT"
 
 Trade details:
-- Current ETH price: $${payload.currentValue ?? 'unknown'}
+- Current price: $${payload.currentValue ?? 'unknown'}
 - Trigger threshold: $${payload.threshold ?? 'unknown'}
 - Gas price: ${gasPriceGwei.toFixed(1)} gwei
 - Trigger condition: ${payload.condition ?? 'ETH_PRICE_BELOW'}
-- x402 data cost: $${payload.dataCostUsd ?? 0.001}
+- Token: ${payload.strategy?.token ?? 'ETH'}
+- Direction: ${payload.strategy?.direction ?? 'buy'}
 
 Respond ONLY with the JSON object.`;
 
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.1-8b-instant',
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' },
-        temperature: 0,
-      });
+      const content = await callWithBroker([{ role: 'user', content: prompt }]);
+      const result  = JSON.parse(content || '{}') as RiskScore;
 
-      const result = JSON.parse(response.choices[0].message.content || '{}') as RiskScore;
-      console.log(`[Risk] Groq score: ${result.score}/10 → ${result.verdict}`);
+      console.log(`[Risk] 0G Compute score: ${result.score}/10 → ${result.verdict}`);
       return result;
+
     } catch (err) {
-      console.error('[Risk] Groq inference failed:', err);
+      console.error('[Risk] 0G Compute inference failed:', err);
       return {
         score: 5,
-        reasoning: 'Groq unavailable — defaulting to REJECT for safety',
+        reasoning: '0G Compute unavailable — defaulting to REJECT for safety',
         verdict: 'REJECT',
       };
     }

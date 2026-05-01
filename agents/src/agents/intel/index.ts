@@ -8,7 +8,7 @@ const IS_MOCK = process.env.MOCK_MODE === 'true';
 export class IntelAgent {
   private bus: AgentBus;
   private provider: ethers.JsonRpcProvider;
-  private wallet: ethers.Wallet;
+  private wallet: ethers.Wallet | ethers.HDNodeWallet;
   private paymentManager!: ethers.Contract;
   private activeWatches: Map<string, ReturnType<typeof setInterval>> = new Map();
 
@@ -37,7 +37,7 @@ export class IntelAgent {
   }
 
   async init() {
-    this.bus.on('INTEL_WATCHING', (msg) => this.watchStrategy(msg.payload.strategy));
+    this.bus.on('INTEL_WATCHING', (msg: { payload: { strategy: Strategy } }) => this.watchStrategy(msg.payload.strategy));
     console.log('[Intel] Online and monitoring feeds...');
   }
 

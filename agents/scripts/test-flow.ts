@@ -5,8 +5,11 @@ import { IntelAgent } from '../src/agents/intel/index.js';
 import { RiskAgent } from '../src/agents/risk/index.js';
 import { ExecutionAgent } from '../src/agents/execution/index.js';
 import * as dotenv from 'dotenv';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-dotenv.config({ path: '../../.env' });
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
 async function runTestFlow() {
   console.log('🚀 Starting Alpha402 End-to-End Test Flow...');

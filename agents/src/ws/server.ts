@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { AgentBus } from '../bus/index.js';
+import { A2AMessage } from '@alpha402/shared';
 
 export function startWSServer(bus: AgentBus, commander?: any) {
   const wss = new WebSocketServer({ port: 3001 });
@@ -17,7 +18,7 @@ export function startWSServer(bus: AgentBus, commander?: any) {
     ws.send(safeStringify({ type: 'HISTORY', data: history }));
 
     // Forward all new agent messages to the dashboard
-    const listener = (msg: any) => {
+    const listener = (msg: A2AMessage) => {
       if (ws.readyState === ws.OPEN) {
         ws.send(safeStringify({ type: 'A2A_MESSAGE', data: msg }));
       }

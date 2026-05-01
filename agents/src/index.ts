@@ -37,7 +37,7 @@ if (!process.env.GROQ_API_KEY) {
 async function main() {
   console.log('\n╔══════════════════════════════════════════════════╗');
   console.log('║  🤖 Alpha402 — Multi-Agent DeFi System            ║');
-  console.log('║  AI:       Groq (llama-3.1-8b-instant)            ║');
+  console.log('║  AI:       0G Compute Network (TEE-verified)       ║');
   console.log('║  Storage:  0G Decentralised Storage               ║');
   console.log('║  Comms:    Gensyn AXL (P2P mesh, if running)      ║');
   console.log('║  Exec:     KeeperHub (guaranteed execution)        ║');

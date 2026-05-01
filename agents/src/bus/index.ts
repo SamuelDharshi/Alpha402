@@ -1,4 +1,4 @@
-import EventEmitter from 'eventemitter3';
+import { EventEmitter } from 'node:events';
 import { A2AMessage, ENSIdentity } from '@alpha402/shared';
 import { ZeroGStorage } from '../storage/zeroG.js';
 import { AXLTransport, AXL_PORTS, CALLBACK_PORTS } from './axl.js';

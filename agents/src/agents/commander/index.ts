@@ -2,6 +2,15 @@ import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
 import { Strategy, A2AMessage } from '@alpha402/shared';
+import { callWithBroker } from '../../ai/zeroGCompute.js';
+
+const SYSTEM_PROMPT =
+  'You are a DeFi strategy parser. Extract from the user message: ' +
+  'token (string), direction ("buy"|"sell"), triggerCondition ("ETH_PRICE_BELOW"|"ETH_PRICE_ABOVE"), ' +
+  'triggerValue (number), maxPositionEth (number), stopLossPercent (number), maxGasGwei (number). ' +
+  'Return ONLY a strict JSON object with those exact keys. Default asset is ETH if not mentioned. ' +
+  'For "drops below" use ETH_PRICE_BELOW. For "goes above" / "rises above" use ETH_PRICE_ABOVE. ' +
+  'If direction not specified and condition is BELOW use "buy". If ABOVE use "sell".';
 
 export class CommanderAgent {
   private bus: AgentBus;
@@ -26,45 +35,25 @@ export class CommanderAgent {
   }
 
   async init() {
-    this.bus.on('TRIGGER_FIRED', (msg) => this.handleTriggerFired(msg));
-    this.bus.on('RISK_APPROVED',  (msg) => this.handleRiskApproved(msg));
-    this.bus.on('RISK_REJECTED',  (msg) => this.handleRiskRejected(msg));
-    this.bus.on('EXECUTION_CONFIRMED', (msg) => this.handleExecutionConfirmed(msg));
+    this.bus.on('TRIGGER_FIRED',      (msg: A2AMessage) => this.handleTriggerFired(msg));
+    this.bus.on('RISK_APPROVED',      (msg: A2AMessage) => this.handleRiskApproved(msg));
+    this.bus.on('RISK_REJECTED',      (msg: A2AMessage) => this.handleRiskRejected(msg));
+    this.bus.on('EXECUTION_CONFIRMED',(msg: A2AMessage) => this.handleExecutionConfirmed(msg));
     console.log('[Commander] Online and listening...');
   }
 
   async parseStrategy(input: string, owner: string): Promise<Strategy> {
     try {
       console.log(`[Commander] Parsing intent for ${owner}: "${input}"`);
+      console.log('[Commander] Calling 0G Compute Network (decentralized AI inference)...');
 
-      const apiKey = process.env.GROQ_API_KEY;
-      if (!apiKey) {
-        throw new Error('GROQ_API_KEY is missing.');
-      }
+      const content = await callWithBroker(
+        [{ role: 'user', content: input }],
+        SYSTEM_PROMPT
+      );
 
-      const { Groq } = await import('groq-sdk');
-      const groq = new Groq({ apiKey });
-
-      console.log('[Commander] Calling Groq (llama-3.1-8b-instant) ...');
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are a DeFi strategy parser. Extract from the user message: ' +
-              'token (string), direction ("buy"|"sell"), triggerCondition ("ETH_PRICE_BELOW"|"ETH_PRICE_ABOVE"), ' +
-              'triggerValue (number), maxPositionEth (number), stopLossPercent (number), maxGasGwei (number). ' +
-              'Return ONLY a strict JSON object with those exact keys. Default asset is ETH if not mentioned.',
-          },
-          { role: 'user', content: input },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0,
-      });
-
-      const parsed = JSON.parse(response.choices[0].message.content || '{}');
-      console.log('[Commander] Groq parsed:', parsed);
+      const parsed = JSON.parse(content || '{}');
+      console.log('[Commander] 0G Compute parsed:', parsed);
 
       const strategy: Strategy = {
         id: ethers.hexlify(ethers.randomBytes(32)),
@@ -83,9 +72,11 @@ export class CommanderAgent {
 
       console.log('[Commander] Strategy created:', {
         id: strategy.id.slice(0, 10) + '...',
+        direction: strategy.direction,
+        token: strategy.token,
+        condition: strategy.triggerCondition,
+        triggerAt: '$' + strategy.triggerValue,
         maxPositionEth: ethers.formatEther(strategy.maxPositionWei),
-        stopLoss: strategy.stopLossPercent / 100 + '%',
-        maxGas: strategy.maxGasGwei + ' gwei',
       });
 
       await this.bus.publish({

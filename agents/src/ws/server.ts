@@ -27,7 +27,9 @@ export function startWSServer(bus: AgentBus, commander?: any) {
     // Accept inbound commands from dashboard
     ws.on('message', async (raw) => {
       try {
-        const cmd = JSON.parse(raw.toString());
+        const data = raw.toString();
+        console.log(`[WS] Inbound: ${data}`);
+        const cmd = JSON.parse(data);
 
         if (cmd.type === 'PARSE_STRATEGY' && commander) {
           console.log(`[WS] Received strategy from dashboard: "${cmd.input}"`);
@@ -51,4 +53,6 @@ export function startWSServer(bus: AgentBus, commander?: any) {
   });
 
   console.log('[WS] Server running on ws://localhost:3001');
+
+  return wss;
 }

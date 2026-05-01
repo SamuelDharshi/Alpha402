@@ -9,6 +9,8 @@ export interface Strategy {
   active: boolean;
   naturalLanguageInput: string;
   parsedAt: number;
+  direction: 'buy' | 'sell';
+  token: string;
   zeroGCID?: string;
   onChainId?: string;
 }
@@ -50,3 +52,5 @@ export interface ExecutionResult {
   status: 'CONFIRMED' | 'FAILED';
   gasUsed?: bigint;
 }
+
+export * from './ens.js';

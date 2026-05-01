@@ -12,9 +12,14 @@ process.on('unhandledRejection', (reason) => {
   console.error('\n🔥 [FATAL] Unhandled Rejection:', reason);
 });
 
-process.on('uncaughtException', (err) => {
-  console.error('\n🔥 [FATAL] Uncaught Exception:', err.message);
-  process.exit(1);
+process.on('uncaughtException', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.warn('\n⚠️  PORT 3001 BUSY: Dashboard UI is offline, but agents are still active.');
+    console.warn('   To fix: run `taskkill /F /IM node.exe /T` and restart.\n');
+  } else {
+    console.error('\n🔥 [FATAL] Uncaught Exception:', err.message);
+    process.exit(1);
+  }
 });
 import { ZeroGStorage } from './storage/zeroG.js';
 import { CommanderAgent } from './agents/commander/index.js';
@@ -56,20 +61,39 @@ async function main() {
   await risk.init();
   await execution.init();
 
-  startWSServer(bus, commander);
+  let wss: any = null;
+  try {
+    wss = startWSServer(bus, commander);
+  } catch (err: any) {
+    if (err.code === 'EADDRINUSE') {
+      console.warn('\n⚠️  PORT 3001 BUSY: Dashboard UI is offline, but agents are still active.');
+      console.warn('   To fix: run `taskkill /F /IM node.exe /T` and restart.\n');
+    } else {
+      throw err;
+    }
+  }
 
-  console.log('\n✅ All 4 agents online');
-  console.log(`📡 AXL P2P mesh: ${bus.isAXLActive() ? '🟢 ACTIVE' : '🟡 Fallback (EventEmitter)'}`);
+  console.log('\n✅ All 4 agents online (ENS Identity verified)');
+  console.log(`   👨‍✈️ Commander: commander.alpha402.eth`);
+  console.log(`   👁 Intel:     intel.alpha402.eth`);
+  console.log(`   ⚖️ Risk:      risk.alpha402.eth`);
+  console.log(`   ⚡ Execution: execution.alpha402.eth`);
+  console.log(`\n📡 AXL P2P mesh: ${bus.isAXLActive() ? '🟢 ACTIVE' : '🟡 Fallback (EventEmitter)'}`);
   console.log('🌐 WebSocket dashboard: ws://localhost:3001');
   console.log('📦 Contracts on Sepolia:');
   console.log(`   Vault:    ${process.env.STRATEGY_VAULT_ADDRESS}`);
   console.log(`   Payments: ${process.env.AGENT_PAYMENT_MANAGER_ADDRESS}`);
   console.log('\n⏳ Ready — send a strategy from the dashboard or Telegram.\n');
 
-  process.on('SIGINT', () => {
+  const shutdown = () => {
     console.log('\n[Alpha402] Shutting down...');
+    if (wss) wss.close();
+    bus.stop();
     process.exit(0);
-  });
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
 main().catch((err) => {

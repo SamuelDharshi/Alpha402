@@ -34,81 +34,85 @@ export class CommanderAgent {
   }
 
   async parseStrategy(input: string, owner: string): Promise<Strategy> {
-    console.log(`[Commander] Parsing intent: "${input}"`);
+    try {
+      console.log(`[Commander] Parsing intent for ${owner}: "${input}"`);
 
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        'GROQ_API_KEY is missing. Get a free key at https://console.groq.com/ and add it to .env'
-      );
+      const apiKey = process.env.GROQ_API_KEY;
+      if (!apiKey) {
+        throw new Error('GROQ_API_KEY is missing.');
+      }
+
+      const { Groq } = await import('groq-sdk');
+      const groq = new Groq({ apiKey });
+
+      console.log('[Commander] Calling Groq (llama-3.1-8b-instant) ...');
+      const response = await groq.chat.completions.create({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a DeFi strategy parser. Extract from the user message: ' +
+              'token (string), direction ("buy"|"sell"), triggerCondition ("ETH_PRICE_BELOW"|"ETH_PRICE_ABOVE"), ' +
+              'triggerValue (number), maxPositionEth (number), stopLossPercent (number), maxGasGwei (number). ' +
+              'Return ONLY a strict JSON object with those exact keys. Default asset is ETH if not mentioned.',
+          },
+          { role: 'user', content: input },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0,
+      });
+
+      const parsed = JSON.parse(response.choices[0].message.content || '{}');
+      console.log('[Commander] Groq parsed:', parsed);
+
+      const strategy: Strategy = {
+        id: ethers.hexlify(ethers.randomBytes(32)),
+        owner,
+        maxPositionWei: ethers.parseEther(String(parsed.maxPositionEth ?? 0.1)),
+        stopLossPercent: (parsed.stopLossPercent ?? 5) * 100,
+        maxGasGwei: parsed.maxGasGwei ?? 50,
+        triggerCondition: parsed.triggerCondition ?? 'ETH_PRICE_BELOW',
+        triggerValue: Number(parsed.triggerValue ?? 3000),
+        active: true,
+        naturalLanguageInput: input,
+        parsedAt: Date.now(),
+        direction: (parsed.direction ?? 'buy').toLowerCase() as 'buy' | 'sell',
+        token: parsed.token ?? 'ETH',
+      };
+
+      console.log('[Commander] Strategy created:', {
+        id: strategy.id.slice(0, 10) + '...',
+        maxPositionEth: ethers.formatEther(strategy.maxPositionWei),
+        stopLoss: strategy.stopLossPercent / 100 + '%',
+        maxGas: strategy.maxGasGwei + ' gwei',
+      });
+
+      await this.bus.publish({
+        id: crypto.randomUUID(),
+        from: 'commander',
+        to: 'user',
+        type: 'STRATEGY_PARSED',
+        timestamp: Date.now(),
+        strategyId: strategy.id,
+        payload: { strategy },
+      });
+
+      await this.bus.publish({
+        id: crypto.randomUUID(),
+        from: 'commander',
+        to: 'intel',
+        type: 'INTEL_WATCHING',
+        timestamp: Date.now(),
+        strategyId: strategy.id,
+        payload: { strategy },
+      });
+
+      return strategy;
+    } catch (err) {
+      console.error('[Commander] Error parsing strategy:', err);
+      throw err;
     }
-
-    // groq-sdk is API-compatible with openai — same request shape
-    const { Groq } = await import('groq-sdk');
-    const groq = new Groq({ apiKey });
-
-    console.log('[Commander] Calling Groq (llama-3.1-8b-instant) ...');
-    const response = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',          // free, fast, open-source weights
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are a DeFi strategy parser. Extract from the user message: ' +
-            'token (string), direction ("buy"|"sell"), triggerCondition ("ETH_PRICE_BELOW"|"ETH_PRICE_ABOVE"), ' +
-            'triggerValue (number), maxPositionEth (number), stopLossPercent (number), maxGasGwei (number). ' +
-            'Return ONLY a strict JSON object with those exact keys. Default asset is ETH if not mentioned.',
-        },
-        { role: 'user', content: input },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0,
-    });
-
-    const parsed = JSON.parse(response.choices[0].message.content || '{}');
-    console.log('[Commander] Groq parsed:', parsed);
-
-    const strategy: Strategy = {
-      id: ethers.hexlify(ethers.randomBytes(32)),
-      owner,
-      maxPositionWei: ethers.parseEther(String(parsed.maxPositionEth ?? 0.1)),
-      stopLossPercent: (parsed.stopLossPercent ?? 5) * 100,
-      maxGasGwei: parsed.maxGasGwei ?? 50,
-      triggerCondition: parsed.triggerCondition ?? 'ETH_PRICE_BELOW',
-      triggerValue: Number(parsed.triggerValue ?? 3000),
-      active: true,
-      naturalLanguageInput: input,
-      parsedAt: Date.now(),
-    };
-
-    console.log('[Commander] Strategy created:', {
-      id: strategy.id.slice(0, 10) + '...',
-      maxPositionEth: ethers.formatEther(strategy.maxPositionWei),
-      stopLoss: strategy.stopLossPercent / 100 + '%',
-      maxGas: strategy.maxGasGwei + ' gwei',
-    });
-
-    await this.bus.publish({
-      id: crypto.randomUUID(),
-      from: 'commander',
-      to: 'user',
-      type: 'STRATEGY_PARSED',
-      timestamp: Date.now(),
-      strategyId: strategy.id,
-      payload: { strategy },
-    });
-
-    await this.bus.publish({
-      id: crypto.randomUUID(),
-      from: 'commander',
-      to: 'intel',
-      type: 'INTEL_WATCHING',
-      timestamp: Date.now(),
-      strategyId: strategy.id,
-      payload: { strategy },
-    });
-
-    return strategy;
   }
 
   private async handleTriggerFired(msg: A2AMessage) {

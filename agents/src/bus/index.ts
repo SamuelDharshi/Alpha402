@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3';
-import { A2AMessage } from '@alpha402/shared';
+import { A2AMessage, ENSIdentity } from '@alpha402/shared';
 import { ZeroGStorage } from '../storage/zeroG.js';
 import { AXLTransport, AXL_PORTS, CALLBACK_PORTS } from './axl.js';
 
@@ -15,6 +15,7 @@ export class AgentBus extends EventEmitter {
   private history: A2AMessage[] = [];
   private zeroG: ZeroGStorage;
   private axl: AXLTransport | null = null;
+  private ens: ENSIdentity;
   private agentName: string;
   private axlActive = false;
 
@@ -22,6 +23,7 @@ export class AgentBus extends EventEmitter {
     super();
     this.zeroG = zeroG;
     this.agentName = agentName;
+    this.ens = new ENSIdentity(process.env.SEPOLIA_RPC_URL);
   }
 
   /** Call after construction. Tries to connect to AXL, falls back silently. */
@@ -49,7 +51,8 @@ export class AgentBus extends EventEmitter {
   }
 
   async publish(message: A2AMessage): Promise<void> {
-    console.log(`[Bus] ${message.from} → ${message.to} : ${message.type}`);
+    const fromENS = this.ens.getAgentName(message.from);
+    console.log(`[Bus] ${fromENS} → ${message.to} : ${message.type}`);
 
     // Persist to 0G Storage (audit trail) — async, don't wait for it to route locally
     this.zeroG.uploadJSON(message).then(cid => {
@@ -78,5 +81,9 @@ export class AgentBus extends EventEmitter {
 
   isAXLActive() {
     return this.axlActive;
+  }
+
+  stop() {
+    if (this.axl) this.axl.stop();
   }
 }

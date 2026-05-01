@@ -42,6 +42,7 @@ export class IntelAgent {
   }
 
   private async watchStrategy(strategy: Strategy) {
+    if (this.activeWatches.has(strategy.id)) return;
     console.log(`[Intel] Starting price monitor for strategy ${strategy.id.slice(0, 10)}...`);
 
     // Use the dynamic threshold and condition from the AI-parsed strategy
@@ -88,10 +89,27 @@ export class IntelAgent {
 
   private async fetchPrice(_strategyId: string): Promise<number> {
     if (IS_MOCK) {
-      // Simulate price gradually falling so the trigger fires within ~3 ticks
-      const mockPrices = [3050, 3010, 2988];
-      const idx = Math.floor(Date.now() / 3000) % mockPrices.length;
-      return mockPrices[idx];
+      // Dynamic mock price: start at 3000 and move towards the threshold by $10 each tick
+      const startTime = Number(this.activeWatches.get(_strategyId + '_start') || Date.now());
+      if (!this.activeWatches.has(_strategyId + '_start')) {
+        this.activeWatches.set(_strategyId + '_start', startTime as any);
+      }
+      
+      const elapsedTicks = Math.floor((Date.now() - startTime) / 3000);
+      const startPrice = 3000;
+      const threshold = 3000; // default
+      // We'll simulate a price that eventually crosses the threshold
+      // For simplicity, we just return a price that satisfies the condition after 3 ticks
+      if (elapsedTicks < 3) return startPrice;
+      
+      // After 3 ticks, return a price that triggers the strategy
+      const strategy = (await this.bus.getHistory()).find(m => m.strategyId === _strategyId && m.type === 'INTEL_WATCHING')?.payload.strategy;
+      if (strategy) {
+        return strategy.triggerCondition === 'ETH_PRICE_BELOW' 
+          ? strategy.triggerValue - 1 
+          : strategy.triggerValue + 1;
+      }
+      return 2999;
     }
 
     // Live: try DexScreener public API (no auth needed)

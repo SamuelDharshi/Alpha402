@@ -46,6 +46,7 @@ export class AXLTransport {
   private agentName: string;
   private messageHandlers: Array<(msg: A2AMessage) => void> = [];
   private available = false;
+  private server: http.Server | null = null;
 
   constructor(config: AXLConfig) {
     this.axlPort  = config.axlPort;
@@ -133,9 +134,16 @@ export class AXLTransport {
     }
   }
 
+  stop(): void {
+    if (this.server) {
+      this.server.close();
+      this.server = null;
+    }
+  }
+
   private startCallbackServer(): Promise<void> {
     return new Promise((resolve) => {
-      const server = http.createServer((req, res) => {
+      this.server = http.createServer((req, res) => {
         if (req.url === '/axl' && req.method === 'POST') {
           let body = '';
           req.on('data', (chunk) => (body += chunk));
@@ -156,7 +164,7 @@ export class AXLTransport {
         }
       });
 
-      server.listen(this.callbackPort, () => resolve());
+      this.server.listen(this.callbackPort, () => resolve());
     });
   }
 

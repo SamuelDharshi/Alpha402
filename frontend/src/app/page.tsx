@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-const TradingFloor = dynamic(() => import('@/components/scene/TradingFloor').then(mod => mod.TradingFloor), { ssr: false });
+const TradingFloor = dynamic(() => import('@/components/scene/TradingFloor'), { ssr: false });
 import { motion } from 'framer-motion';
 import { ArrowRight, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';

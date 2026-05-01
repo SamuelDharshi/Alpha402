@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { TradingFloor } from '@/components/scene/TradingFloor';
+import TradingFloor from '@/components/scene/TradingFloor';
 import { Shield } from 'lucide-react';
 
 export const WalletGate = ({ children }: { children: React.ReactNode }) => {

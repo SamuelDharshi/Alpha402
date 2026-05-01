@@ -31,28 +31,30 @@ const unichainTestnet = {
   testnet: true,
 } as const;
 
-const config = getDefaultConfig({
-  appName: 'Alpha402',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '732e4d29e7127e7f7b3e3e3e3e3e3e3e',
-  chains: [unichainTestnet, mainnet, sepolia],
-  ssr: true,
-  transports: {
-    [unichainTestnet.id]: http(),
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-  },
-});
-
-const queryClient = new QueryClient();
-
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);
+  const [config, setConfig] = React.useState<any>(null);
+  const [queryClient, setQueryClient] = React.useState<any>(null);
   
   React.useEffect(() => {
+    setConfig(
+      getDefaultConfig({
+        appName: 'Alpha402',
+        projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || 'b56e18d47c72ab683b10817fe9485684',
+        chains: [unichainTestnet, mainnet, sepolia],
+        ssr: false, // Turn off SSR for Wagmi
+        transports: {
+          [unichainTestnet.id]: http(),
+          [mainnet.id]: http(),
+          [sepolia.id]: http(),
+        },
+      })
+    );
+    setQueryClient(new QueryClient());
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted || !config || !queryClient) return null;
 
   return (
     <WagmiProvider config={config}>

@@ -1,5 +1,6 @@
 import { Bot } from 'grammy';
 import WebSocket from 'ws';
+import { ENSIdentity } from '@alpha402/shared';
 
 const token = process.env.TELEGRAM_BOT_TOKEN!;
 const AGENT_WS = process.env.AGENT_WS_URL || 'ws://localhost:3001';
@@ -10,6 +11,7 @@ if (!token) {
 }
 
 const bot = new Bot(token);
+const ens = new ENSIdentity(process.env.SEPOLIA_RPC_URL);
 
 // ── WebSocket connection to the agent system ──────────────────────────────────
 // Maps strategyId → Telegram chatId so we can route agent replies back
@@ -19,13 +21,18 @@ const chatToStrategy = new Map<number, string>();
 
 let ws: WebSocket | null = null;
 let wsReady = false;
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 function connectToAgents() {
+  // Don't open a duplicate socket
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
   console.log(`[Bot] Connecting to agent system at ${AGENT_WS}...`);
   ws = new WebSocket(AGENT_WS);
 
   ws.on('open', () => {
     wsReady = true;
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
     console.log('[Bot] ✅ Connected to agent WebSocket');
   });
 
@@ -39,6 +46,21 @@ function connectToAgents() {
       const msg = envelope.data;
       if (!msg) return;
 
+      // Remap tempId → real strategyId as soon as STRATEGY_PARSED arrives
+      if (msg.type === 'STRATEGY_PARSED' && msg.strategyId) {
+        const realId = msg.strategyId;
+        // Find which chatId had a pending tempId for this owner
+        for (const [tempId, chatId] of strategyToChat.entries()) {
+          if (tempId.startsWith('tg_')) {
+            strategyToChat.set(realId, chatId);
+            chatToStrategy.set(chatId, realId);
+            strategyToChat.delete(tempId);
+            console.log(`[Bot] Remapped ${tempId} → ${realId.slice(0, 10)}... for chat ${chatId}`);
+            break;
+          }
+        }
+      }
+
       // Route message to the right Telegram chat
       const chatId = strategyToChat.get(msg.strategyId);
       if (!chatId) return;
@@ -51,8 +73,9 @@ function connectToAgents() {
 
   ws.on('close', () => {
     wsReady = false;
+    ws = null;
     console.log('[Bot] Agent WS disconnected — retrying in 3s...');
-    setTimeout(connectToAgents, 3000);
+    reconnectTimer = setTimeout(connectToAgents, 3000);
   });
 
   ws.on('error', (err) => {
@@ -78,12 +101,14 @@ async function routeAgentMessage(chatId: number, msg: any) {
       const s = payload.strategy;
       const { ethers } = await import('ethers');
       const eth = s.maxPositionWei
-        ? ethers.formatEther(BigInt(s.maxPositionWei.replace?.('n', '') ?? s.maxPositionWei))
+        ? ethers.formatEther(BigInt(String(s.maxPositionWei).replace('n', '')))
         : '?';
       await bot.api.sendMessage(chatId,
         `${icon} *Commander* — Strategy Parsed ✅\n\n` +
         `📋 \`${s.naturalLanguageInput?.slice(0, 80) ?? ''}\`\n\n` +
-        `• Max position: *${eth} ETH*\n` +
+        `• Action: *${(s.direction || 'BUY').toUpperCase()} ${s.token || 'ETH'}*\n` +
+        `• Trigger: *${s.triggerCondition?.replace('ETH_PRICE_', '')} $${s.triggerValue}*\n` +
+        `• Max position: *${eth} ${s.token || 'ETH'}*\n` +
         `• Stop loss: *${(s.stopLossPercent / 100).toFixed(0)}%*\n` +
         `• Max gas: *${s.maxGasGwei} gwei*\n\n` +
         `_Intel Agent is now watching price feeds..._`,
@@ -93,9 +118,10 @@ async function routeAgentMessage(chatId: number, msg: any) {
     }
 
     case 'TRIGGER_FIRED': {
+      const cond = payload.condition?.includes('ABOVE') ? 'above' : 'below';
       await bot.api.sendMessage(chatId,
         `${icon} *Intel* — 🔔 TRIGGER FIRED!\n\n` +
-        `ETH price: *$${payload.currentValue?.toFixed(2)}* crossed below $${payload.threshold}\n` +
+        `Price: *$${payload.currentValue?.toFixed(2)}* crossed ${cond} $${payload.threshold}\n` +
         `_[x402] Paid $${payload.dataCostUsd ?? '0.001'} for price data_\n\n` +
         `Forwarding to Risk Agent...`,
         { parse_mode: 'Markdown' }
@@ -164,6 +190,8 @@ bot.command('start', (ctx) =>
     '  👁 *Intel* — watches live DexScreener price feeds\n' +
     '  ⚖️ *Risk* — scores trades with Groq Llama-3.1\n' +
     '  ⚡ *Execution* — submits via KeeperHub (Sepolia)\n\n' +
+    '*Identity Layer:*\n' +
+    '  🆔 *ENS* — Agents have .eth names for discoverability\n\n' +
     '*How to use:*\n' +
     'Just type your strategy in plain English, for example:\n' +
     '`"Buy ETH when it dips below $3000. Max 0.1 ETH."` \n\n' +
@@ -192,7 +220,7 @@ bot.command('trade', async (ctx) => {
 
   await ctx.reply('📡 Sending to agent system...', { parse_mode: 'Markdown' });
 
-  // Send strategy to agents via WebSocket
+  // Register a temp entry so replies can be routed back
   const tempId = `tg_${chatId}_${Date.now()}`;
   strategyToChat.set(tempId, chatId);
   chatToStrategy.set(chatId, tempId);
@@ -201,28 +229,7 @@ bot.command('trade', async (ctx) => {
     type: 'PARSE_STRATEGY',
     input,
     owner: `telegram_${chatId}`,
-    _tempId: tempId, // so we can match the reply
   }));
-
-  // The agent system will emit STRATEGY_PARSED which contains the real strategyId.
-  // We listen for it in the WS handler and update the map.
-  // For now, also listen once for STRATEGY_PARSED to remap tempId → real strategyId.
-  if (ws) {
-    const remapHandler = (raw: any) => {
-      try {
-        const env = JSON.parse(raw.toString());
-        if (env.type === 'A2A_MESSAGE' && env.data?.type === 'STRATEGY_PARSED') {
-          const realId = env.data.strategyId;
-          strategyToChat.set(realId, chatId);
-          chatToStrategy.set(chatId, realId);
-          // Clean up temp
-          strategyToChat.delete(tempId);
-          ws?.removeListener('message', remapHandler);
-        }
-      } catch { /* ignore */ }
-    };
-    ws.on('message', remapHandler);
-  }
 });
 
 bot.command('agents', async (ctx) => {
@@ -243,9 +250,14 @@ bot.command('stop', (ctx) =>
   ctx.reply('🛑 *Emergency Stop* — All strategies paused.', { parse_mode: 'Markdown' })
 );
 
+bot.catch((err) => {
+  console.error('[Bot] Grammy error:', err);
+});
+
 // ── Fallback: Handle plain text as strategy ────────────────────────────────────
 bot.on('message:text', async (ctx) => {
   const text = ctx.message.text;
+  console.log(`[Bot] Incoming message from ${ctx.from.id}: "${text}"`);
   if (text.startsWith('/')) return; // Ignore other commands
 
   await ctx.reply(`🔍 Interpreting your intent: "_${text}_"`);
@@ -261,7 +273,7 @@ bot.on('message:text', async (ctx) => {
     );
   }
 
-  // Send strategy to agents via WebSocket
+  // Register a temp entry so replies can be routed back
   const tempId = `tg_${chatId}_${Date.now()}`;
   strategyToChat.set(tempId, chatId);
   chatToStrategy.set(chatId, tempId);
@@ -270,7 +282,6 @@ bot.on('message:text', async (ctx) => {
     type: 'PARSE_STRATEGY',
     input: text,
     owner: `telegram_${chatId}`,
-    _tempId: tempId,
   }));
 });
 

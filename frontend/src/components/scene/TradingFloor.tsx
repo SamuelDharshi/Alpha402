@@ -7,15 +7,15 @@ const TradingFloorCanvas = dynamic(
   { ssr: false }
 )
 
-export default function TradingFloor() {
+export default function TradingFloor({ miniaturized = false }: { miniaturized?: boolean }) {
   return (
-    <div className="w-full h-full min-h-[600px] bg-[#080C14] overflow-hidden rounded-xl border border-white/5 relative shadow-2xl">
+    <div className={`w-full h-full ${miniaturized ? 'min-h-0' : 'min-h-[600px] rounded-xl border border-white/5 shadow-2xl'} bg-[#080C14] overflow-hidden relative`}>
       <Suspense fallback={
         <div className="w-full h-full flex items-center justify-center text-cyan-500 font-mono text-xs animate-pulse">
           INITIALIZING ALPHA402 NEURAL LINK...
         </div>
       }>
-        <TradingFloorCanvas />
+        <TradingFloorCanvas compact={miniaturized} />
       </Suspense>
       
       {/* Decorative overlays */}

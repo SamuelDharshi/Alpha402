@@ -34,7 +34,7 @@ interface Props {
 }
 
 export default function TradingFloorCanvas({ autoRotate = true, compact = false }: Props) {
-  const zoom = compact ? 40 : 60
+  const zoom = compact ? 28 : 55
   const activeBeams = useAlphaStore(state => state.activeBeams)
   const messages = useAlphaStore(state => state.messages)
 
@@ -47,6 +47,7 @@ export default function TradingFloorCanvas({ autoRotate = true, compact = false 
       orthographic
       camera={{ zoom, position: [10, 10, 10], near: 0.1, far: 200 }}
       style={{ background: '#080C14', width: '100%', height: '100%' }}
+      dpr={compact ? 1 : [1, 2]}
     >
       {/* Environment */}
       <fog attach="fog" args={['#080C14', 25, 80]} />
@@ -93,7 +94,8 @@ export default function TradingFloorCanvas({ autoRotate = true, compact = false 
       />
 
       {/* === POSTPROCESSING === */}
-      <EffectComposer>
+      {/* EffectComposer temporarily disabled due to three.js v0.176.0 incompatibility crashing the browser */}
+      {/* <EffectComposer>
         <Bloom
           luminanceThreshold={0.5}
           luminanceSmoothing={0.9}
@@ -105,7 +107,7 @@ export default function TradingFloorCanvas({ autoRotate = true, compact = false 
           offset={new Vector2(0.0015, 0.0015)}
         />
         <Vignette darkness={0.55} offset={0.25} />
-      </EffectComposer>
+      </EffectComposer> */}
     </Canvas>
   )
 }

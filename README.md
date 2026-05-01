@@ -114,7 +114,5 @@ The system is managed from the root directory using npm workspaces.
    npm run dev:bot
    ```
 
-## LICENSING
-
 ## 📜 License
 MIT

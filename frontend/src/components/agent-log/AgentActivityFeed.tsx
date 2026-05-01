@@ -15,6 +15,11 @@ const AGENT_TEXT_COLORS: Record<AgentRole, string> = {
   USER: 'text-text-primary',
 };
 
+const getAgentColorClass = (agent: string) => {
+  const key = agent.toUpperCase() as AgentRole;
+  return AGENT_TEXT_COLORS[key] ?? 'text-text-primary';
+};
+
 const LogRow = ({ msg }: { msg: A2AMessage }) => {
   const [expanded, setExpanded] = useState(false);
   
@@ -31,9 +36,9 @@ const LogRow = ({ msg }: { msg: A2AMessage }) => {
         onClick={() => setExpanded(!expanded)}
       >
         <span className="text-text-tertiary">[{new Date(msg.timestamp).toLocaleTimeString([], { hour12: false })}]</span>
-        <span className={cn("font-bold w-16", AGENT_TEXT_COLORS[msg.sender])}>{msg.sender}</span>
+        <span className={cn("font-bold w-16", getAgentColorClass(msg.sender))}>{msg.sender}</span>
         <span className="text-text-secondary">→</span>
-        <span className={cn("font-bold w-16", AGENT_TEXT_COLORS[msg.receiver])}>{msg.receiver}</span>
+        <span className={cn("font-bold w-16", getAgentColorClass(msg.receiver))}>{msg.receiver}</span>
         <span className={cn(
           "flex-1 truncate",
           isRejected ? "text-status-danger" : isApproved ? "text-status-success" : "text-text-mono"

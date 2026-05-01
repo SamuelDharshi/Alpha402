@@ -38,8 +38,8 @@ export default function WalkingDrones() {
     return items
   }, [])
 
-  const droneRefs = useRef<THREE.Group[]>([])
-  const lightRefs = useRef<THREE.PointLight[]>([])
+  const droneRefs = useRef<Array<THREE.Object3D | null>>([])
+  const lightRefs = useRef<Array<THREE.PointLight | null>>([])
   const pathProgress = useRef<number[]>(drones.map(d => d.pathOffset))
   const pathTargets = useRef<number[]>(drones.map(() => Math.floor(Math.random() * 4)))
 
@@ -83,7 +83,7 @@ export default function WalkingDrones() {
   return (
     <group>
       {drones.map((drone, i) => (
-        <group key={i} ref={el => { if (el) droneRefs.current[i] = el }}>
+        <group key={i} ref={el => { if (el) droneRefs.current[i] = el as unknown as THREE.Object3D }}>
           {/* Drone body — flat disc */}
           <mesh rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[drone.size, drone.size * 0.7, drone.size * 0.4, 8]} />
@@ -118,7 +118,7 @@ export default function WalkingDrones() {
 
           {/* Trail light */}
           <pointLight
-            ref={el => { if (el) lightRefs.current[i] = el }}
+            ref={el => { if (el) lightRefs.current[i] = el as unknown as THREE.PointLight }}
             color={drone.color}
             intensity={0.4}
             distance={1.5}

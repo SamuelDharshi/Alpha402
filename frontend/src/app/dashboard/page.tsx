@@ -240,7 +240,7 @@ export default function DashboardPage() {
                     <span className="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse flex-shrink-0" />
                     <span className="text-[9px] font-mono text-text-tertiary truncate">{s.lastTriggered}</span>
                   </div>
-                  <p className="text-[10px] font-mono text-text-mono line-clamp-2 italic">"{s.input}"</p>
+                  <p className="text-[10px] font-mono text-text-mono line-clamp-2 italic">&quot;{s.input}&quot;</p>
                 </div>
               ))}
             </div>

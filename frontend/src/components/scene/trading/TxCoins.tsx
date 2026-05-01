@@ -18,7 +18,7 @@ export default function TxCoins() {
   const messages = useAlphaStore(state => state.messages)
   const coinsRef = useRef<Coin[]>([])
   const meshRefs = useRef<THREE.Mesh[]>([])
-  const [renderTick, setRenderTick] = useState(0)
+  const [, forceRender] = useState(0)
 
   useEffect(() => {
     const last = messages[messages.length - 1]
@@ -39,7 +39,7 @@ export default function TxCoins() {
         color: success ? '#00FF88' : '#EF4444',
       })
       if (coinsRef.current.length > 8) coinsRef.current.shift()
-      setRenderTick(t => t + 1)
+      forceRender(t => t + 1)
     }
   }, [messages])
 
@@ -60,7 +60,7 @@ export default function TxCoins() {
       changed = true
     })
     coinsRef.current = coinsRef.current.filter(c => c.progress < 1.1)
-    if (changed) setRenderTick(t => t + 1)
+    if (changed) forceRender(t => t + 1)
   })
 
   return (

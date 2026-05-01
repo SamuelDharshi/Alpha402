@@ -44,7 +44,7 @@ export default function CinematicCamera() {
 
   useFrame((_, delta) => {
     // Smooth zoom
-    const orthoCamera = camera as THREE.OrthographicCamera
+    const orthoCamera = camera as unknown as THREE.OrthographicCamera
     if (orthoCamera.zoom !== undefined) {
       orthoCamera.zoom = THREE.MathUtils.lerp(
         orthoCamera.zoom,
@@ -56,7 +56,11 @@ export default function CinematicCamera() {
 
     // Smooth look-at pan
     currentLookAt.current.lerp(targetLookAt.current, delta * TRANSITION_SPEED)
-    camera.lookAt(currentLookAt.current)
+    camera.lookAt(
+      currentLookAt.current.x,
+      currentLookAt.current.y,
+      currentLookAt.current.z
+    )
   })
 
   return null

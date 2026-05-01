@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { TradingFloor } from '@/components/scene/TradingFloor';
+import TradingFloor from '@/components/scene/TradingFloor';
 import { useAlphaStore } from '@/lib/store';
 import { AgentRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ const AGENT_THEMES: Record<AgentRole, { color: string, bg: string, text: string 
   INTEL: { color: 'border-neon-cyan', bg: 'bg-neon-cyan/5', text: 'text-neon-cyan' },
   RISK: { color: 'border-status-warning', bg: 'bg-status-warning/5', text: 'text-status-warning' },
   EXECUTION: { color: 'border-neon-green', bg: 'bg-neon-green/5', text: 'text-neon-green' },
+  USER: { color: 'border-background-tertiary', bg: 'bg-background-secondary/30', text: 'text-text-secondary' },
 };
 
 export default function AgentsPage() {

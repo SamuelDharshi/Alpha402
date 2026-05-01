@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
-import { IChartApi, createChart, ColorType, ISeriesApi } from 'lightweight-charts';
+import { IChartApi, createChart, ColorType, ISeriesApi, UTCTimestamp } from 'lightweight-charts';
 
 export const PriceChart = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -35,7 +35,7 @@ export const PriceChart = () => {
     });
 
     // Initial dummy data
-    const data = [
+    const data: { time: UTCTimestamp; value: number }[] = [
       { time: '2026-04-24 10:00', value: 2980.5 },
       { time: '2026-04-24 10:05', value: 2985.2 },
       { time: '2026-04-24 10:10', value: 2982.1 },
@@ -43,7 +43,7 @@ export const PriceChart = () => {
       { time: '2026-04-24 10:20', value: 2992.3 },
       { time: '2026-04-24 10:25', value: 2989.4 },
       { time: '2026-04-24 10:30', value: 2995.0 },
-    ].map(d => ({ ...d, time: new Date(d.time).getTime() / 1000 }));
+    ].map(d => ({ ...d, time: (new Date(d.time).getTime() / 1000) as UTCTimestamp }));
 
     lineSeries.setData(data);
     

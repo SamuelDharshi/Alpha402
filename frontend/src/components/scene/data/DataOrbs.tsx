@@ -30,15 +30,6 @@ export default function DataOrbs() {
     }
   }), [])
 
-  // Build line geometries from orb to Intel tower
-  const lineGeometries = useMemo(() => orbData.map(orb => {
-    const points = [
-      new THREE.Vector3(orb.baseX, orb.baseY, orb.baseZ),
-      INTEL_POS,
-    ]
-    return new THREE.BufferGeometry().setFromPoints(points)
-  }), [orbData])
-
   useFrame((state, delta) => {
     t.current += delta
     const speed = intelActive ? 2.5 : 1.0
@@ -117,7 +108,7 @@ export default function DataOrbs() {
           </Html>
 
           {/* Beam line to Intel tower */}
-          <line ref={el => { if (el) lineRefs.current[i] = el as any }}>
+          <line ref={el => { if (el) lineRefs.current[i] = el as unknown as THREE.Line }}>
             <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"

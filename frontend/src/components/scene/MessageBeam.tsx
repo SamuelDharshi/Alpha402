@@ -4,14 +4,16 @@ import * as THREE from 'three'
 import { AGENT_POSITIONS, AGENT_COLORS, AgentId } from '@/lib/types'
 
 interface MessageBeamProps {
-  sender: AgentId
-  receiver: AgentId
+  sender: string
+  receiver: string
 }
 
 export default function MessageBeam({ sender, receiver }: MessageBeamProps) {
-  const start = AGENT_POSITIONS[sender]
-  const end = AGENT_POSITIONS[receiver]
-  const color = AGENT_COLORS[sender]
+  const normalizedSender = sender.toLowerCase() as AgentId
+  const normalizedReceiver = receiver.toLowerCase() as AgentId
+  const start = AGENT_POSITIONS[normalizedSender]
+  const end = AGENT_POSITIONS[normalizedReceiver]
+  const color = AGENT_COLORS[normalizedSender]
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
@@ -35,12 +37,18 @@ export default function MessageBeam({ sender, receiver }: MessageBeamProps) {
   }, [start, end])
 
   const points = useMemo(() => curve.getPoints(50), [curve])
+  const geometry = useMemo(() => {
+    const bufferGeometry = new THREE.BufferGeometry()
+    bufferGeometry.setFromPoints(points)
+    return bufferGeometry
+  }, [points])
+
   if (progress >= 1) return null
 
   return (
     <group>
       <line>
-        <bufferGeometry attach="geometry" setFromPoints={points} />
+        <primitive object={geometry} attach="geometry" />
         <lineBasicMaterial attach="material" color={color} transparent opacity={0.3 * (1 - progress)} />
       </line>
       <mesh position={curve.getPoint(progress)}>

@@ -16,6 +16,7 @@ import {
   QueryClientProvider,
   QueryClient,
 } from "@tanstack/react-query";
+import type { Config } from 'wagmi';
 
 // Custom Unichain Testnet definition
 const unichainTestnet = {
@@ -33,8 +34,8 @@ const unichainTestnet = {
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);
-  const [config, setConfig] = React.useState<any>(null);
-  const [queryClient, setQueryClient] = React.useState<any>(null);
+  const [config, setConfig] = React.useState<Config | null>(null);
+  const [queryClient, setQueryClient] = React.useState<QueryClient | null>(null);
   
   React.useEffect(() => {
     setConfig(

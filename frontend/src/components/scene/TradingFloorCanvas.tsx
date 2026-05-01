@@ -1,10 +1,7 @@
 'use client'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing'
-import { BlendFunction } from 'postprocessing'
 import { Suspense } from 'react'
-import { Vector2 } from 'three'
 
 // Base scene
 import FloorGrid from './FloorGrid'
@@ -94,20 +91,6 @@ export default function TradingFloorCanvas({ autoRotate = true, compact = false 
       />
 
       {/* === POSTPROCESSING === */}
-      {/* EffectComposer temporarily disabled due to three.js v0.176.0 incompatibility crashing the browser */}
-      {/* <EffectComposer>
-        <Bloom
-          luminanceThreshold={0.5}
-          luminanceSmoothing={0.9}
-          intensity={1.4}
-          blendFunction={BlendFunction.ADD}
-        />
-        <ChromaticAberration
-          blendFunction={BlendFunction.NORMAL}
-          offset={new Vector2(0.0015, 0.0015)}
-        />
-        <Vignette darkness={0.55} offset={0.25} />
-      </EffectComposer> */}
     </Canvas>
   )
 }

@@ -164,7 +164,7 @@ async function routeAgentMessage(chatId: number, msg: any) {
         `⛽ Gas used: ${gasUsed}\n` +
         `🛠 Via: ${method === 'keeperhub_api' ? 'KeeperHub ✅' : 'Direct Sepolia'}\n` +
         (explorer ? `🌐 [View on Sepolia](${explorer})` : ''),
-        { parse_mode: 'Markdown', disable_web_page_preview: true }
+        { parse_mode: 'Markdown', link_preview_options: { is_disabled: true } }
       );
       break;
     }

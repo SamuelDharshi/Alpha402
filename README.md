@@ -4,7 +4,7 @@ Alpha402 is an autonomous multi-agent DeFi trading system built for the ETHGloba
 
 ## 🚀 Overview
 
-The Alpha402 platform allows users to deploy a personalized fleet of AI agents using natural language. Instead of manually monitoring charts and worrying about MEV extraction, users simply message the Telegram bot (e.g., "Buy 1 ETH when the price dips below $3000"). The agent crew handles the rest: watching price feeds 24/7, scoring the risk of the trade, and executing the transaction securely
+The Alpha402 platform allows users to deploy a personalized fleet of AI agents using natural language. Instead of manually monitoring charts and worrying about MEV extraction, users simply message the Telegram bot (e.g., "Buy 1 ETH when the price dips below $3000"). The agent crew handles the rest: watching price feeds 24/7, scoring the risk of the trade, and executing the transaction securely.
 
 ### Core Features
 
@@ -71,7 +71,43 @@ sequenceDiagram
 - `contracts/`: Hardhat workspace for custom Uniswap v4 hooks and Alpha402 payment contracts.
 - `shared/`: Shared TypeScript types, utility functions, and constants.
 
-## 🏃 Getting Started
+## � Hackathon Submission Coverage
+
+### Required submission fields
+
+- **Project name:** Alpha402
+- **Short description:** Autonomous multi-agent DeFi trading crew that parses strategies from Telegram, monitors prices, scores risk, and executes onchain actions.
+- **Contract deployment addresses:** See [`contracts/deployments/sepolia.json`](contracts/deployments/sepolia.json)
+- **Demo video:** TODO - add public video link under 3 minutes
+- **Live demo link:** TODO - add hosted dashboard or bot demo URL
+- **Team member names and contact info:** SamuelDharshi - GitHub: SamuelDharshi - Email: samueldharshi.27csb@licet.ac.in - Telegram: TODO - X: TODO
+
+### Protocols and SDKs used
+
+- **0G Storage:** agent audit trail and message persistence
+- **0G DA / 0G compute surface:** documented in the PRD as the infra target for decentralized AI workflows
+- **Gensyn AXL:** peer-to-peer agent communication layer with local-node fallback
+- **ENS:** human-readable identity for each agent via `ENSIdentity`
+- **KeeperHub:** guaranteed execution and retry layer for approved trades
+- **Uniswap v4:** hook-based DeFi execution and contract integration
+
+### Working example agents
+
+- `CommanderAgent`: turns plain English into structured strategies
+- `IntelAgent`: watches markets and emits trigger events
+- `RiskAgent`: scores the trade and approves or rejects execution
+- `ExecutionAgent`: routes confirmed trades through KeeperHub or Sepolia fallback
+
+### Demo and integration notes
+
+- Run the full agent flow with `npm run test:agents`
+- Start the agent mesh with `npm run dev:agents`
+- Start the dashboard with `npm run dev`
+- Start the Telegram bot with `npm run dev:bot`
+- If you have the AXL binary installed, run one node per agent on ports 8765-8768 to demonstrate separate-node communication
+- Required feedback files are included at [`FEEDBACK.md`](FEEDBACK.md) and [`FEEDBACK_KEEPERHUB.md`](FEEDBACK_KEEPERHUB.md)
+
+## �🏃 Getting Started
 
 ### Prerequisites
 - Node.js (v20+)

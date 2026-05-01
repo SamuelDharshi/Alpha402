@@ -19,7 +19,7 @@
     "deploy:sepolia": "npm run deploy:sepolia --workspace=contracts"
   },
   "devDependencies": {
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.27.7",
     "prettier": "^3.2.5",
     "tsx": "^4.21.0"
   },
@@ -28,7 +28,7 @@
     "three-mesh-bvh": "0.8.0"
   },
   "dependencies": {
-    "@esbuild/win32-x64": "^0.28.0",
+    "@esbuild/win32-x64": "^0.27.7",
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
     "events": "^3.3.0",

@@ -43,6 +43,8 @@ export async function getZeroGClient(): Promise<OpenAI> {
     console.warn('[0G Compute]    Run: 0g-compute-cli inference get-secret --provider <ADDR>');
     const { default: Groq } = await import('groq-sdk') as any;
     _apiClient = new Groq({ apiKey: groqKey }) as unknown as OpenAI;
+    // Override model to Groq-compatible one
+    process.env.ZG_MODEL = 'llama-3.1-8b-instant';
     return _apiClient;
   }
 
@@ -127,8 +129,15 @@ async function callWithApiKey(
   const all = systemPrompt
     ? [{ role: 'system' as const, content: systemPrompt }, ...messages]
     : messages;
+  
+  // Use Groq model if using Groq fallback, otherwise use 0G model
+  const isGroq = client.constructor.name === 'Groq';
+  const model = isGroq 
+    ? 'llama-3.1-8b-instant'
+    : (process.env.ZG_MODEL || 'qwen/qwen-2.5-7b-instruct');
+  
   const res = await (client as OpenAI).chat.completions.create({
-    model: process.env.ZG_MODEL || 'qwen/qwen-2.5-7b-instruct',
+    model,
     messages: all as any,
     response_format: { type: 'json_object' },
     temperature: 0,

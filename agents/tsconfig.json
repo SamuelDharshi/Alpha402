@@ -9,8 +9,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "types": ["node"],
-    "baseUrl": ".",
+    "rootDir": "src",
+    "ignoreDeprecations": "5.0",
     "paths": {
       "@alpha402/shared": ["../shared/src/index.ts"]
     }

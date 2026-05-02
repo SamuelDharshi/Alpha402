@@ -3,8 +3,8 @@ services:
     name: alpha402-agents
     runtime: node
     rootDir: agents
-    buildCommand: cd .. && npm install && cd agents && npm install
-    startCommand: npm run start
+    buildCommand: npm install --omit=optional
+    startCommand: npx tsx src/index.ts
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,11 +14,23 @@ services:
         sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
-      - key: ZERO_G_RPC_URL
-        value: https://evmrpc-test.0g.ai
       - key: ZERO_G_PRIVATE_KEY
         sync: false
-      - key: ZG_API_KEY
+      - key: ZG_API_SECRET
         sync: false
-      - key: ZG_COMPUTE_ENDPOINT
+      - key: ZG_PROVIDER_ADDRESS
         sync: false
+      - key: ZG_SERVICE_URL
+        sync: false
+      - key: ZG_RPC_URL
+        value: https://evmrpc-testnet.0g.ai
+      - key: ZG_MODEL
+        value: qwen/qwen-2.5-7b-instruct
+      - key: GROQ_API_KEY
+        sync: false
+      - key: STRATEGY_VAULT_ADDRESS
+        sync: false
+      - key: KEEPERHUB_PRIVATE_KEY
+        sync: false
+      - key: MOCK_MODE
+        value: "false"

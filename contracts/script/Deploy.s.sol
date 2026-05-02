@@ -5,19 +5,27 @@ import "forge-std/Script.sol";
 import "../src/StrategyVault.sol";
 import "../src/AgentPaymentManager.sol";
 import "../src/AgentRegistry.sol";
-import "../src/TradeDeskHook.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import "../src/Alpha402Hook.sol";
+import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
 
 /// @notice Deploys the 4 core contracts to Sepolia testnet.
 contract DeployScript is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        string memory pkStr = vm.envString("PRIVATE_KEY");
+        // Add 0x prefix if missing (forge needs it for key parsing)
+        bytes memory pkBytes = bytes(pkStr);
+        uint256 deployerPrivateKey;
+        if (pkBytes.length >= 2 && pkBytes[0] == '0' && (pkBytes[1] == 'x' || pkBytes[1] == 'X')) {
+            deployerPrivateKey = vm.parseUint(pkStr);
+        } else {
+            deployerPrivateKey = vm.parseUint(string(abi.encodePacked("0x", pkStr)));
+        }
 
         // Sepolia USDC (Circle's official test token)
         address usdcAddress = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
 
-        // Mock PoolManager for testing (since real v4 might not be on your specific RPC)
-        address poolManager = 0x0000000000044444444444444444444444444444;
+        // Uniswap v4 PoolManager on Sepolia (official deployment)
+        address poolManager = 0x8C4BcBE6b9eF47855f97E675296FA3F6fafa5F1A;
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -33,9 +41,16 @@ contract DeployScript is Script {
         AgentRegistry registry = new AgentRegistry();
         console.log("AgentRegistry:", address(registry));
 
-        // 4. TradeDeskHook — Uniswap v4 hook for strategy enforcement
-        TradeDeskHook hook = new TradeDeskHook(IPoolManager(poolManager), address(vault));
-        console.log("TRADE_DESK_HOOK_ADDRESS:", address(hook));
+        // 4. Alpha402Hook — Uniswap v4 hook for strategy enforcement
+        Alpha402Hook hook = new Alpha402Hook(IPoolManager(poolManager), address(vault));
+        console.log("ALPHA402_HOOK_ADDRESS:", address(hook));
+
+        // 5. Authorise agent wallets for self-registration (set AGENT_WALLET in env)
+        address agentWallet = vm.envOr("AGENT_WALLET", address(0));
+        if (agentWallet != address(0)) {
+            registry.authoriseAgent(agentWallet);
+            console.log("Authorised agent wallet:", agentWallet);
+        }
 
         vm.stopBroadcast();
 
@@ -44,7 +59,7 @@ contract DeployScript is Script {
         vm.serializeAddress(json, "StrategyVault", address(vault));
         vm.serializeAddress(json, "AgentPaymentManager", address(paymentManager));
         vm.serializeAddress(json, "AgentRegistry", address(registry));
-        vm.serializeAddress(json, "TradeDeskHook", address(hook));
+        vm.serializeAddress(json, "Alpha402Hook", address(hook));
         string memory finalJson = vm.serializeAddress(json, "USDC", usdcAddress);
 
         vm.writeFile("deployments/sepolia.json", finalJson);

@@ -13,12 +13,14 @@
     "dev": "npm run dev --workspace=frontend",
     "dev:agents": "npm run dev --workspace=agents",
     "dev:bot": "npm run dev --workspace=bot",
+    "dev:axl": "npx concurrently \"node axl-sim.mjs --port 8765 --agent commander\" \"node axl-sim.mjs --port 8766 --agent intel\" \"node axl-sim.mjs --port 8767 --agent risk\" \"node axl-sim.mjs --port 8768 --agent execution\"",
     "test:agents": "npm run test --workspace=agents",
     "test:contracts": "npm run test --workspace=contracts",
     "compile": "npm run compile --workspace=contracts",
     "deploy:sepolia": "npm run deploy:sepolia --workspace=contracts"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "esbuild": "^0.27.7",
     "prettier": "^3.2.5",
     "tsx": "^4.21.0"

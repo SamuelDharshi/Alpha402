@@ -3,7 +3,8 @@ import { AgentBus } from '../bus/index.js';
 import { A2AMessage } from '@alpha402/shared';
 
 export function startWSServer(bus: AgentBus, commander?: any) {
-  const wss = new WebSocketServer({ port: 3001 });
+  const port = parseInt(process.env.PORT || '3001');
+  const wss = new WebSocketServer({ port });
 
   // BigInt-safe serializer for WebSockets
   const safeStringify = (obj: any) => JSON.stringify(obj, (_key, value) =>

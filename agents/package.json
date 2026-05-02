@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx --env-file=../.env --watch src/index.ts",
-    "start": "node dist/index.js",
+    "start": "tsx src/index.ts",
     "test": "tsx --env-file=../.env scripts/test-flow.ts",
     "build": "tsc"
   },

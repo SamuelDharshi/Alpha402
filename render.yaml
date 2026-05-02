@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: alpha402-agents
+    runtime: node
+    rootDir: agents
+    buildCommand: cd .. && npm install && cd agents && npm install
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SEPOLIA_RPC_URL
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ZERO_G_RPC_URL
+        value: https://evmrpc-test.0g.ai
+      - key: ZERO_G_PRIVATE_KEY
+        sync: false
+      - key: ZG_API_KEY
+        sync: false
+      - key: ZG_COMPUTE_ENDPOINT
+        sync: false

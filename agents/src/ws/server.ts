@@ -1,7 +1,7 @@
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import { AgentBus } from '../bus/index.js';
-import { A2AMessage } from '@alpha402/shared';
+import { A2AMessage } from '../shared.js';
 
 export function startWSServer(bus: AgentBus, commander?: any) {
   const port = parseInt(process.env.PORT || '3001');

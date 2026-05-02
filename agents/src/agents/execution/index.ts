@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
-import { A2AMessage, ENSIdentity } from '@alpha402/shared';
+import { A2AMessage, ENSIdentity } from '../../shared.js';
 
 /**
  * Execution Agent

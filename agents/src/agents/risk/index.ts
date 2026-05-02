@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
-import { A2AMessage, ENSIdentity, RiskScore } from '@alpha402/shared';
+import { A2AMessage, ENSIdentity, RiskScore } from '../../shared.js';
 import { callWithBroker } from '../../ai/zeroGCompute.js';
 
 export class RiskAgent {

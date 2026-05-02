@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { A2AMessage, ENSIdentity } from '@alpha402/shared';
+import { A2AMessage, ENSIdentity } from '../shared.js';
 import { ZeroGStorage } from '../storage/zeroG.js';
 import { AXLTransport } from './axl.js';
 

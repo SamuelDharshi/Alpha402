@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
-import { Strategy, A2AMessage, ENSIdentity } from '@alpha402/shared';
+import { Strategy, A2AMessage, ENSIdentity } from '../../shared.js';
 import { callWithBroker } from '../../ai/zeroGCompute.js';
 
 const SYSTEM_PROMPT =

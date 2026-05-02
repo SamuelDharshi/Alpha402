@@ -10,10 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "rootDir": "src",
-    "ignoreDeprecations": "5.0",
-    "paths": {
-      "@alpha402/shared": ["../shared/src/index.ts"]
-    }
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src/**/*"]
 }

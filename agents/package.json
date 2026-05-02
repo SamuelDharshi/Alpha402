@@ -12,7 +12,6 @@
   "dependencies": {
     "@0gfoundation/0g-compute-ts-sdk": "^0.8.0",
     "@0glabs/0g-ts-sdk": "^0.2.1",
-    "@alpha402/shared": "file:../shared",
     "dotenv": "^16.4.5",
     "ethers": "^6.11.1",
     "eventemitter3": "^5.0.1",

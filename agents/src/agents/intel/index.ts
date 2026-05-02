@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
-import { Strategy, ENSIdentity } from '@alpha402/shared';
+import { Strategy, ENSIdentity } from '../../shared.js';
 
 export class IntelAgent {
   private bus: AgentBus;

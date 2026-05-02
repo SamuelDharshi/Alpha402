@@ -20,7 +20,7 @@
  */
 
 import http from 'http';
-import { A2AMessage } from '@alpha402/shared';
+import { A2AMessage } from '../shared.js';
 
 export interface AXLConfig {
   /** Agent name (commander | intel | risk | execution) */

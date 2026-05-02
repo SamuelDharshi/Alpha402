@@ -1,10 +1,18 @@
+import http from 'http';
 import { WebSocketServer } from 'ws';
 import { AgentBus } from '../bus/index.js';
 import { A2AMessage } from '@alpha402/shared';
 
 export function startWSServer(bus: AgentBus, commander?: any) {
   const port = parseInt(process.env.PORT || '3001');
-  const wss = new WebSocketServer({ port });
+
+  // HTTP server handles Render health checks + WebSocket upgrades
+  const httpServer = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'Alpha402 Agent Bus', agents: 4 }));
+  });
+
+  const wss = new WebSocketServer({ server: httpServer });
 
   // BigInt-safe serializer for WebSockets
   const safeStringify = (obj: any) => JSON.stringify(obj, (_key, value) =>
@@ -54,7 +62,9 @@ export function startWSServer(bus: AgentBus, commander?: any) {
     ws.on('error', (err) => console.error('[WS] Socket error:', err));
   });
 
-  console.log('[WS] Server running on ws://localhost:3001');
+  httpServer.listen(port, () => {
+    console.log(`[WS] Server running on port ${port}`);
+  });
 
   return wss;
 }

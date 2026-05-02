@@ -2,23 +2,15 @@ import { ethers } from 'ethers';
 
 /**
  * ENS Utility for Alpha402
- * 
+ *
  * Provides human-readable identity for agents and users.
  * Integrates with ENS (Ethereum Name Service) for resolution.
+ * Uses `staticNetwork` to prevent the ethers.js provider from spamming
+ * "failed to detect network" retries on startup.
  */
 
-// Mock mapping for demo if ENS resolver is unavailable on testnet
-const MOCK_ENS_MAP: Record<string, string> = {
-  'commander.alpha402.eth': '0x7e4198E452921E32c30eeEfc9d58e63810b835D6',
-  'intel.alpha402.eth':     '0xDFA20Faa8A0094B5dC3065b3315F8F818971eB39',
-  'risk.alpha402.eth':      '0x1234567890123456789012345678901234567890',
-  'execution.alpha402.eth': '0x0987654321098765432109876543210987654321',
-};
-
-const REVERSE_MOCK_MAP: Record<string, string> = Object.entries(MOCK_ENS_MAP).reduce((acc, [name, addr]) => {
-  acc[addr.toLowerCase()] = name;
-  return acc;
-}, {} as Record<string, string>);
+// Sepolia network definition (chain ID 11155111)
+const SEPOLIA = ethers.Network.from(11155111);
 
 export class ENSIdentity {
   private provider: ethers.JsonRpcProvider | null = null;
@@ -26,17 +18,18 @@ export class ENSIdentity {
   constructor(rpcUrl?: string) {
     if (rpcUrl) {
       try {
-        this.provider = new ethers.JsonRpcProvider(rpcUrl);
+        // staticNetwork prevents the auto-detect retry loop that spams logs
+        this.provider = new ethers.JsonRpcProvider(rpcUrl, SEPOLIA, {
+          staticNetwork: SEPOLIA,
+        });
       } catch {
         // Silently fail if RPC is invalid
       }
     }
   }
 
-  /** Resolves a name to an address */
+  /** Resolves an ENS name to an address */
   async resolveName(name: string): Promise<string | null> {
-    if (MOCK_ENS_MAP[name]) return MOCK_ENS_MAP[name];
-    
     if (this.provider) {
       try {
         return await this.provider.resolveName(name);
@@ -47,11 +40,8 @@ export class ENSIdentity {
     return null;
   }
 
-  /** Resolves an address to a name */
+  /** Resolves an address to an ENS name */
   async lookupAddress(address: string): Promise<string | null> {
-    const addr = address.toLowerCase();
-    if (REVERSE_MOCK_MAP[addr]) return REVERSE_MOCK_MAP[addr];
-
     if (this.provider) {
       try {
         return await this.provider.lookupAddress(address);
@@ -62,9 +52,8 @@ export class ENSIdentity {
     return null;
   }
 
-  /** Get agent name by ID */
+  /** Returns the canonical agent ENS name for a given agent ID */
   getAgentName(agentId: string): string {
-    const name = agentId.toLowerCase();
-    return `${name}.alpha402.eth`;
+    return `${agentId.toLowerCase()}.alpha402.eth`;
   }
 }

@@ -19,7 +19,7 @@ The `uniswap-ai` repo gave us a useful mental model for how Uniswap expects agen
 
 ### 1. Hook Address Mining (Biggest Friction)
 **Issue:** Uniswap v4 hooks must be deployed at addresses where specific bits are set. The `HookMiner` utility works in Foundry but there is no Hardhat-compatible equivalent we could find.  
-**Impact:** We had to skip deploying `TradeDeskHook.sol` in our Hardhat-based setup and move the file out of the build directory. This cost ~3 hours.  
+**Impact:** We had to skip deploying `Alpha402Hook.sol` in our Hardhat-based setup and move the file out of the build directory. This cost ~3 hours.  
 **Request:** An `@uniswap/v4-deploy-helpers` npm package with a Hardhat/ethers.js compatible `findSalt()` function would unblock dozens of hackathon teams.
 
 ### 2. `@uniswap/v4-core` npm vs Foundry lib mismatch

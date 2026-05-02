@@ -74,29 +74,51 @@ sequenceDiagram
 ## � Hackathon Submission Coverage
 
 ### Required submission fields
+## 🏗️ Hackathon Submission Coverage
 
-- **Project name:** Alpha402
-- **Short description:** Autonomous multi-agent DeFi trading crew that parses strategies from Telegram, monitors prices, scores risk, and executes onchain actions.
-- **Contract deployment addresses:** See [`contracts/deployments/sepolia.json`](contracts/deployments/sepolia.json)
-- **Demo video:** TODO - add public video link under 3 minutes
-- **Live demo link:** TODO - add hosted dashboard or bot demo URL
-- **Team member names and contact info:** SamuelDharshi - GitHub: SamuelDharshi - Email: samueldharshi.27csb@licet.ac.in - Telegram: TODO - X: TODO
+Alpha402 integrates **5 sponsor technologies** into a single autonomous workflow.
 
-### Protocols and SDKs used
+### 🛡️ 1. 0G Labs (Storage & Compute)
+*   **0G Storage**: [agents/src/storage/zeroG.ts](agents/src/storage/zeroG.ts) — All agent messages and strategy metadata are persisted immutably.
+*   **0G Compute**: [agents/src/ai/zeroGCompute.ts](agents/src/ai/zeroGCompute.ts) — Uses TEE-verified inference (`processResponse`) to prove AI reasoning.
+*   **iNFT (ERC-7857)**: [contracts/src/AgentRegistry.sol](contracts/src/AgentRegistry.sol) — Each agent (Commander, Intel, etc.) is minted as an iNFT on startup to manage ownership and reputation.
 
-- **0G Storage:** agent audit trail and message persistence
-- **0G DA / 0G compute surface:** documented in the PRD as the infra target for decentralized AI workflows
-- **Gensyn AXL:** peer-to-peer agent communication layer with local-node fallback
-- **ENS:** human-readable identity for each agent via `ENSIdentity`
-- **KeeperHub:** guaranteed execution and retry layer for approved trades
-- **Uniswap v4:** hook-based DeFi execution and contract integration
+### 🦄 2. Uniswap Foundation
+*   **Uniswap API**: [agents/src/agents/execution/index.ts](agents/src/agents/execution/index.ts) — Real-time price fetching and trade simulation via Uniswap v4 testnet pools.
+*   **Developer Feedback**: [FEEDBACK.md](FEEDBACK.md) — 6 specific pain points and 4 feature requests for the Uniswap v4 Hook DX.
 
-### Working example agents
+### 🎖️ 3. Gensyn AXL
+*   **P2P Mesh**: [agents/src/bus/axl.ts](agents/src/bus/axl.ts) — Decentralized agent-to-agent communication via AXL nodes.
+*   **Separate Nodes**: The system runs 4 concurrent AXL nodes (ports 8765-8768) to ensure zero central coordination.
 
-- `CommanderAgent`: turns plain English into structured strategies
-- `IntelAgent`: watches markets and emits trigger events
-- `RiskAgent`: scores the trade and approves or rejects execution
-- `ExecutionAgent`: routes confirmed trades through KeeperHub or Sepolia fallback
+### 🤖 4. ENS (Ethereum Name Service)
+*   **Identity**: [shared/src/ens.ts](shared/src/ens.ts) — Agent identity resolution (`commander.alpha402.eth`).
+*   **Metadata**: Agent roles and strategy IDs are resolved via ENS text records to enable discovery.
+
+### 💚 5. KeeperHub
+*   **Execution Layer**: [agents/src/agents/execution/index.ts](agents/src/agents/execution/index.ts) — Routes all trades via KeeperHub REST API for MEV protection.
+*   **x402 Payments**: [contracts/src/AgentPaymentManager.sol](contracts/src/AgentPaymentManager.sol) — Agents pay each other micro-USDC for data and risk scoring via the x402 standard.
+
+---
+
+## 🛠️ Protocol Features & SDKs Used
+
+| Sponsor | Features Used | SDKs / Tools |
+|---------|---------------|--------------|
+| **0G Labs** | Storage KV, TEE Inference, iNFT | `@0gfoundation/0g-compute-ts-sdk`, `Indexer`, `MemData` |
+| **Uniswap** | v4 Hooks, Quoting, Unichain | `v4-core`, `v4-periphery`, `ethers.js` |
+| **Gensyn** | P2P Routing, A2A Messaging | `AXL Binary`, `Local Mesh Simulator` |
+| **ENS** | Name Resolution, Text Records | `ethers.js (ENS Resolver)`, `PublicResolver` |
+| **KeeperHub** | REST API Execution, x402 | `KeeperHub REST V1`, `AgentPaymentManager.sol` |
+
+---
+
+## 👨‍💻 Submission Details
+*   **Project Name:** Alpha402
+*   **Short Description:** An autonomous multi-agent swarm for intent-based DeFi trading, powered by 0G persistence, Gensyn P2P comms, and Uniswap execution.
+*   **Demo Video:** [TODO: Insert Link]
+*   **Live Demo:** [TODO: Insert Link]
+*   **Team:** [TODO: Your Name / Telegram / X]
 
 ### Demo and integration notes
 

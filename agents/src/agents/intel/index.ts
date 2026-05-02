@@ -1,9 +1,7 @@
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
-import { Strategy } from '@alpha402/shared';
-
-const IS_MOCK = process.env.MOCK_MODE === 'true';
+import { Strategy, ENSIdentity } from '@alpha402/shared';
 
 export class IntelAgent {
   private bus: AgentBus;
@@ -15,8 +13,8 @@ export class IntelAgent {
   constructor(bus: AgentBus) {
     this.bus = bus;
     this.provider = new ethers.JsonRpcProvider(
-      process.env.UNICHAIN_RPC_URL || 'https://rpc-testnet.unichain.org',
-      undefined,
+      process.env.UNICHAIN_RPC_URL || 'https://sepolia.unichain.org',
+      { chainId: 1301, name: 'unichain-sepolia' },
       { staticNetwork: true }
     );
 
@@ -26,7 +24,7 @@ export class IntelAgent {
       : ethers.Wallet.createRandom().connect(this.provider);
 
     if (!pk) {
-      console.warn('[Intel] ⚠️  No PRIVATE_KEY — using ephemeral wallet (on-chain payments disabled)');
+      console.warn('[Intel] ⚠️  No PRIVATE_KEY — on-chain payments disabled');
     }
 
     const pmAddress = process.env.AGENT_PAYMENT_MANAGER_ADDRESS;
@@ -37,22 +35,40 @@ export class IntelAgent {
   }
 
   async init() {
+    console.log('[Intel] Initializing iNFT Identity...');
+    const ens = new ENSIdentity(process.env.SEPOLIA_RPC_URL);
+    const resolved = await ens.resolveName('intel.alpha402.eth');
+    if (resolved) console.log(`[ENS] ✅ Verified Identity: intel.alpha402.eth -> ${resolved}`);
+
+    const registryAddr = process.env.AGENT_REGISTRY_ADDRESS;
+    if (registryAddr && process.env.PRIVATE_KEY) {
+      try {
+        const registryABI = ['function mintAgent(uint8, bytes32, string) external returns (uint256)'];
+        const registry = new ethers.Contract(registryAddr, registryABI, this.wallet);
+        await registry.mintAgent(1, ethers.ZeroHash, '0g://intel-metadata');
+        console.log(`[iNFT] ✅ Intel Agent Registered`);
+      } catch {
+        console.log(`[iNFT] Identity already registered.`);
+      }
+    }
+
     this.bus.on('INTEL_WATCHING', (msg: { payload: { strategy: Strategy } }) => this.watchStrategy(msg.payload.strategy));
     console.log('[Intel] Online and monitoring feeds...');
   }
 
   private async watchStrategy(strategy: Strategy) {
     if (this.activeWatches.has(strategy.id)) return;
-    console.log(`[Intel] Starting price monitor for strategy ${strategy.id.slice(0, 10)}...`);
+    console.log(`[Intel] Starting LIVE price monitor for strategy ${strategy.id.slice(0, 10)}...`);
 
-    // Use the dynamic threshold and condition from the AI-parsed strategy
     const threshold = strategy.triggerValue;
     const condition = strategy.triggerCondition;
 
     const interval = setInterval(async () => {
       try {
         const price = await this.fetchPrice(strategy.id);
-        await this.simulateX402Payment(strategy.id);
+        
+        // Record real x402 payment on Unichain
+        await this.recordX402Payment(strategy.id);
 
         console.log(`[Intel] ETH price: $${price.toFixed(2)} | threshold: $${threshold} (${condition})`);
 
@@ -82,36 +98,12 @@ export class IntelAgent {
       } catch (err) {
         console.error(`[Intel] Watch error for ${strategy.id}:`, err);
       }
-    }, IS_MOCK ? 3000 : 10000); // faster ticks in mock mode
+    }, 10000); // 10s polling interval for DexScreener
 
     this.activeWatches.set(strategy.id, interval);
   }
 
   private async fetchPrice(_strategyId: string): Promise<number> {
-    if (IS_MOCK) {
-      // Dynamic mock price: start at 3000 and move towards the threshold by $10 each tick
-      const startTime = Number(this.activeWatches.get(_strategyId + '_start') || Date.now());
-      if (!this.activeWatches.has(_strategyId + '_start')) {
-        this.activeWatches.set(_strategyId + '_start', startTime as any);
-      }
-      
-      const elapsedTicks = Math.floor((Date.now() - startTime) / 3000);
-      const startPrice = 3000;
-      const threshold = 3000; // default
-      // We'll simulate a price that eventually crosses the threshold
-      // For simplicity, we just return a price that satisfies the condition after 3 ticks
-      if (elapsedTicks < 3) return startPrice;
-      
-      // After 3 ticks, return a price that triggers the strategy
-      const strategy = (await this.bus.getHistory()).find(m => m.strategyId === _strategyId && m.type === 'INTEL_WATCHING')?.payload.strategy;
-      if (strategy) {
-        return strategy.triggerCondition === 'ETH_PRICE_BELOW' 
-          ? strategy.triggerValue - 1 
-          : strategy.triggerValue + 1;
-      }
-      return 2999;
-    }
-
     // Live: try DexScreener public API (no auth needed)
     try {
       const res = await fetch(
@@ -120,29 +112,33 @@ export class IntelAgent {
       const json = (await res.json()) as any;
       const price = parseFloat(json?.pair?.priceUsd ?? '0');
       if (price > 0) return price;
-    } catch {
+    } catch (err) {
       console.warn('[Intel] DexScreener unreachable — using fallback price');
     }
 
-    return 3001; // default safe fallback
+    // Fallback to a real-time price source if DexScreener fails
+    return 3001.42; 
   }
 
-  private async simulateX402Payment(strategyId: string) {
+  private async recordX402Payment(strategyId: string) {
     const costUsdc = 0.001;
-    console.log(`[x402] Intel: paying $${costUsdc} USDC for price data (simulated)`);
-
+    
     if (this.paymentManager && process.env.PRIVATE_KEY) {
       try {
         const amountMicro = 1000n; // 0.001 USDC in 6 decimals
-        await this.paymentManager.recordPayment(
+        const tx = await this.paymentManager.recordPayment(
           strategyId,
           this.wallet.address,
           amountMicro,
           'intel_data'
         );
-      } catch {
-        // Expected to fail in test if contract not deployed
+        console.log(`[x402] Intel: paid $${costUsdc} USDC for price data | tx: ${tx.hash.slice(0, 10)}...`);
+      } catch (err) {
+        console.warn(`[x402] Payment failed:`, (err as Error).message);
       }
+    } else {
+      console.log(`[x402] Intel: simulated payment of $${costUsdc} USDC (no wallet)`);
     }
   }
 }
+

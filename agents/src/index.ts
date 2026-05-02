@@ -29,9 +29,9 @@ import { ExecutionAgent } from './agents/execution/index.js';
 import { startWSServer } from './ws/server.js';
 
 // Guard required keys
-if (!process.env.GROQ_API_KEY) {
-  console.error('\n❌ GROQ_API_KEY missing — get a free key at https://console.groq.com/\n');
-  process.exit(1);
+if (!process.env.ZG_SERVICE_URL && !process.env.GROQ_API_KEY) {
+  console.warn('\n⚠️  Neither ZG_SERVICE_URL (0G Compute) nor GROQ_API_KEY is set.');
+  console.warn('   Agents will start but AI inference may fail.\n');
 }
 
 async function main() {

@@ -131,7 +131,7 @@ async function routeAgentMessage(chatId: number, msg: any) {
 
     case 'RISK_SCORING': {
       await bot.api.sendMessage(chatId,
-        `${icon} *Risk* — Scoring trade...\n_Calling Groq AI for risk inference..._`,
+        `${icon} *Risk* — Scoring trade...\n_Calling 0G Compute Network (TEE-verified inference)..._`,
         { parse_mode: 'Markdown' }
       );
       break;
@@ -186,12 +186,13 @@ bot.command('start', (ctx) =>
     '👋 *Welcome to Alpha402* 🤖\n\n' +
     'I am your autonomous DeFi trading assistant. I orchestrate a crew of AI agents to monitor and execute trades on your behalf.\n\n' +
     '*Your Agent Crew:*\n' +
-    '  👨‍✈️ *Commander* — parses your intent via Groq AI\n' +
+    '  👨‍✈️ *Commander* — parses your intent via 0G Compute Network\n' +
     '  👁 *Intel* — watches live DexScreener price feeds\n' +
-    '  ⚖️ *Risk* — scores trades with Groq Llama-3.1\n' +
-    '  ⚡ *Execution* — submits via KeeperHub (Sepolia)\n\n' +
+    '  ⚖️ *Risk* — scores trades with 0G Compute (TEE-verified)\n' +
+    '  ⚡ *Execution* — guaranteed via KeeperHub (Sepolia)\n\n' +
     '*Identity Layer:*\n' +
-    '  🆔 *ENS* — Agents have .eth names for discoverability\n\n' +
+    '  🆔 *ENS* — Agents have .eth names for discoverability\n' +
+    '  🖼 *iNFT* — Each agent has an on-chain identity (AgentRegistry)\n\n' +
     '*How to use:*\n' +
     'Just type your strategy in plain English, for example:\n' +
     '`"Buy ETH when it dips below $3000. Max 0.1 ETH."` \n\n' +

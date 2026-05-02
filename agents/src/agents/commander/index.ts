@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
-import { Strategy, A2AMessage } from '@alpha402/shared';
+import { Strategy, A2AMessage, ENSIdentity } from '@alpha402/shared';
 import { callWithBroker } from '../../ai/zeroGCompute.js';
 
 const SYSTEM_PROMPT =
@@ -15,26 +15,65 @@ const SYSTEM_PROMPT =
 export class CommanderAgent {
   private bus: AgentBus;
   private provider: ethers.JsonRpcProvider;
-  private vaultContract: ethers.Contract;
+  private wallet: ethers.Wallet | ethers.HDNodeWallet;
+  private vaultContract: ethers.Contract | null = null;
 
   constructor(bus: AgentBus) {
     this.bus = bus;
+
+    // Vault is on Sepolia — use Sepolia provider here
     this.provider = new ethers.JsonRpcProvider(
-      process.env.UNICHAIN_RPC_URL || 'https://rpc-testnet.unichain.org'
+      process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com',
+      { chainId: 11155111, name: 'sepolia' },
+      { staticNetwork: true }
     );
 
-    const vaultABI = [
-      'function createStrategy(uint256, uint256, uint256) external payable returns (bytes32)',
-      'event StrategyCreated(bytes32 indexed strategyId, address owner, uint256 maxPositionWei, uint256 stopLossPercent, uint256 maxGasGwei)',
-    ];
-    this.vaultContract = new ethers.Contract(
-      process.env.STRATEGY_VAULT_ADDRESS || ethers.ZeroAddress,
-      vaultABI,
-      this.provider
-    );
+    const pk = process.env.PRIVATE_KEY?.startsWith('0x')
+      ? process.env.PRIVATE_KEY
+      : `0x${process.env.PRIVATE_KEY}`;
+    this.wallet = pk && pk !== '0xundefined'
+      ? new ethers.Wallet(pk, this.provider)
+      : ethers.Wallet.createRandom().connect(this.provider);
+
+    const vaultAddress = process.env.STRATEGY_VAULT_ADDRESS;
+    if (vaultAddress) {
+      // ABI matches deployed StrategyVault.sol exactly
+      const vaultABI = [
+        'function createStrategy(uint256 maxPositionWei, uint256 stopLossPercent, uint256 maxGasGwei) external payable returns (bytes32)',
+        'function authoriseExecution(bytes32, uint256, uint256) external view returns (bool)',
+        'event StrategyCreated(bytes32 indexed strategyId, address owner, uint256 maxPositionWei, uint256 stopLossPercent, uint256 maxGasGwei)',
+      ];
+      this.vaultContract = new ethers.Contract(vaultAddress, vaultABI, this.wallet);
+    }
   }
 
   async init() {
+    console.log('[Commander] Initializing iNFT Identity...');
+    
+    // 1. ENS Resolution
+    const ens = new ENSIdentity(process.env.SEPOLIA_RPC_URL);
+    const resolved = await ens.resolveName('commander.alpha402.eth');
+    if (resolved) {
+      console.log(`[ENS] ✅ Verified Identity: commander.alpha402.eth -> ${resolved}`);
+    } else {
+      console.warn('[ENS] ⚠️  Name commander.alpha402.eth not resolved. Please register it.');
+    }
+
+    // 2. iNFT Registration in AgentRegistry (ERC-7857 concept)
+    const registryAddr = process.env.AGENT_REGISTRY_ADDRESS;
+    if (registryAddr && process.env.PRIVATE_KEY) {
+      try {
+        const registryABI = ['function mintAgent(uint8, bytes32, string) external returns (uint256)'];
+        const registry = new ethers.Contract(registryAddr, registryABI, this.wallet);
+        
+        // Strategy ID is 0 for the generic agent identity NFT
+        const tx = await registry.mintAgent(0, ethers.ZeroHash, '0g://commander-metadata');
+        console.log(`[iNFT] ✅ Agent Registered as iNFT | tx: ${tx.hash.slice(0, 12)}...`);
+      } catch (err) {
+        console.log(`[iNFT] Identity already registered or registry unreachable.`);
+      }
+    }
+
     this.bus.on('TRIGGER_FIRED',      (msg: A2AMessage) => this.handleTriggerFired(msg));
     this.bus.on('RISK_APPROVED',      (msg: A2AMessage) => this.handleRiskApproved(msg));
     this.bus.on('RISK_REJECTED',      (msg: A2AMessage) => this.handleRiskRejected(msg));
@@ -55,12 +94,47 @@ export class CommanderAgent {
       const parsed = JSON.parse(content || '{}');
       console.log('[Commander] 0G Compute parsed:', parsed);
 
+      const maxPositionWei   = ethers.parseEther(String(parsed.maxPositionEth ?? 0.01));
+      const stopLossPercent  = BigInt((parsed.stopLossPercent ?? 5) * 100); // basis points
+      const maxGasGwei       = BigInt(parsed.maxGasGwei ?? 50);
+
+      // ── Register strategy on-chain in StrategyVault ──────────────────────
+      // This generates the real strategyId that KeeperHub will use
+      let strategyId: string;
+      if (this.vaultContract) {
+        try {
+          console.log('[Commander] Registering strategy on StrategyVault (Sepolia)...');
+          const tx = await this.vaultContract.createStrategy(
+            maxPositionWei,
+            stopLossPercent,
+            maxGasGwei,
+            { gasLimit: 200_000 }
+          );
+          const receipt = await tx.wait();
+
+          // Extract strategyId from StrategyCreated event
+          const TOPIC = ethers.id('StrategyCreated(bytes32,address,uint256,uint256,uint256)');
+          const vaultAddr = (process.env.STRATEGY_VAULT_ADDRESS ?? '').toLowerCase();
+          const log = receipt.logs.find(
+            (l: any) => l.address?.toLowerCase() === vaultAddr && l.topics?.[0] === TOPIC
+          );
+          strategyId = log ? log.topics[1] : ethers.hexlify(ethers.randomBytes(32));
+          console.log(`[Commander] ✅ Strategy registered on-chain: ${strategyId.slice(0, 18)}... (tx: ${tx.hash.slice(0, 18)}...)`);
+        } catch (err: any) {
+          console.warn(`[Commander] ⚠️  Vault registration failed (${err.message?.slice(0, 60)}). Using local ID.`);
+          strategyId = ethers.hexlify(ethers.randomBytes(32));
+        }
+      } else {
+        strategyId = ethers.hexlify(ethers.randomBytes(32));
+        console.warn('[Commander] ⚠️  STRATEGY_VAULT_ADDRESS not set — strategy NOT registered on-chain');
+      }
+
       const strategy: Strategy = {
-        id: ethers.hexlify(ethers.randomBytes(32)),
+        id: strategyId,
         owner,
-        maxPositionWei: ethers.parseEther(String(parsed.maxPositionEth ?? 0.1)),
-        stopLossPercent: (parsed.stopLossPercent ?? 5) * 100,
-        maxGasGwei: parsed.maxGasGwei ?? 50,
+        maxPositionWei,
+        stopLossPercent: Number(stopLossPercent),
+        maxGasGwei:      Number(maxGasGwei),
         triggerCondition: parsed.triggerCondition ?? 'ETH_PRICE_BELOW',
         triggerValue: Number(parsed.triggerValue ?? 3000),
         active: true,
@@ -70,7 +144,7 @@ export class CommanderAgent {
         token: parsed.token ?? 'ETH',
       };
 
-      console.log('[Commander] Strategy created:', {
+      console.log('[Commander] Strategy ready:', {
         id: strategy.id.slice(0, 10) + '...',
         direction: strategy.direction,
         token: strategy.token,

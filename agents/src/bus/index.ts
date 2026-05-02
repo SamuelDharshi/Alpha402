@@ -1,7 +1,15 @@
 import { EventEmitter } from 'node:events';
 import { A2AMessage, ENSIdentity } from '@alpha402/shared';
 import { ZeroGStorage } from '../storage/zeroG.js';
-import { AXLTransport, AXL_PORTS, CALLBACK_PORTS } from './axl.js';
+import { AXLTransport } from './axl.js';
+
+// Stable callback ports per agent — AXL delivers incoming messages here
+const CALLBACK_PORTS: Record<string, number> = {
+  commander: 9765,
+  intel:     9766,
+  risk:      9767,
+  execution: 9768,
+};
 
 /**
  * AgentBus — dual-mode message router
@@ -29,9 +37,8 @@ export class AgentBus extends EventEmitter {
   /** Call after construction. Tries to connect to AXL, falls back silently. */
   async connectAXL(): Promise<void> {
     this.axl = new AXLTransport({
-      axlPort:      AXL_PORTS[this.agentName],
-      callbackPort: CALLBACK_PORTS[this.agentName],
       agentName:    this.agentName,
+      callbackPort: CALLBACK_PORTS[this.agentName] ?? 9769,
     });
 
     this.axlActive = await this.axl.start();

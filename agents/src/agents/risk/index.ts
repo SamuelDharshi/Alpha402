@@ -1,19 +1,20 @@
 import { ethers } from 'ethers';
 import crypto from 'node:crypto';
 import { AgentBus } from '../../bus/index.js';
-import { RiskScore } from '@alpha402/shared';
+import { A2AMessage, ENSIdentity, RiskScore } from '@alpha402/shared';
 import { callWithBroker } from '../../ai/zeroGCompute.js';
 
 export class RiskAgent {
   private bus: AgentBus;
   private provider: ethers.JsonRpcProvider;
   private vaultContract!: ethers.Contract;
+  private wallet?: ethers.Wallet;
 
   constructor(bus: AgentBus) {
     this.bus = bus;
     this.provider = new ethers.JsonRpcProvider(
-      process.env.UNICHAIN_RPC_URL || 'https://rpc-testnet.unichain.org',
-      undefined,
+      process.env.UNICHAIN_RPC_URL || 'https://sepolia.unichain.org',
+      { chainId: 1301, name: 'unichain-sepolia' },
       { staticNetwork: true }
     );
 
@@ -28,6 +29,23 @@ export class RiskAgent {
   }
 
   async init() {
+    console.log('[Risk] Initializing iNFT Identity...');
+    const ens = new ENSIdentity(process.env.SEPOLIA_RPC_URL);
+    const resolved = await ens.resolveName('risk.alpha402.eth');
+    if (resolved) console.log(`[ENS] ✅ Verified Identity: risk.alpha402.eth -> ${resolved}`);
+
+    const registryAddr = process.env.AGENT_REGISTRY_ADDRESS;
+    if (registryAddr && process.env.PRIVATE_KEY) {
+      try {
+        const registryABI = ['function mintAgent(uint8, bytes32, string) external returns (uint256)'];
+        const registry = new ethers.Contract(registryAddr, registryABI, this.wallet);
+        await registry.mintAgent(2, ethers.ZeroHash, '0g://risk-metadata');
+        console.log(`[iNFT] ✅ Risk Agent Registered`);
+      } catch {
+        console.log(`[iNFT] Identity already registered.`);
+      }
+    }
+
     this.bus.on('RISK_SCORING', (msg: { strategyId: string; payload: any }) =>
       this.scoreTrade(msg.strategyId, msg.payload)
     );

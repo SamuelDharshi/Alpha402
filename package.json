@@ -6,11 +6,13 @@
     "bot",
     "contracts",
     "shared",
-    "frontend"
+    "frontend",
+    "alpha402"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev": "npm run dev --workspace=frontend",
+    "dev": "cd alpha402 && pnpm dev",
+    "dev:old": "npm run dev --workspace=frontend",
     "dev:agents": "npm run dev --workspace=agents",
     "dev:bot": "npm run dev --workspace=bot",
     "dev:axl": "npx concurrently \"node axl-sim.mjs --port 8765 --agent commander\" \"node axl-sim.mjs --port 8766 --agent intel\" \"node axl-sim.mjs --port 8767 --agent risk\" \"node axl-sim.mjs --port 8768 --agent execution\"",

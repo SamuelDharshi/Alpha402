@@ -2,9 +2,8 @@ services:
   - type: web
     name: alpha402-agents
     runtime: node
-    rootDir: agents
-    buildCommand: npm install --omit=optional
-    startCommand: npx tsx src/index.ts
+    buildCommand: echo "build skipped"
+    startCommand: bash start-agents.sh
     envVars:
       - key: NODE_ENV
         value: production

@@ -45,6 +45,11 @@ const LogRow = ({ msg }: { msg: A2AMessage }) => {
         )}>
           {msg.type} {msg.content}
         </span>
+        {msg.zeroGTxn && (
+          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/20 text-[9px] text-blue-400 font-bold border border-blue-500/30">
+            0G AUDIT
+          </div>
+        )}
         {expanded ? <ChevronUp size={14} className="text-text-tertiary" /> : <ChevronDown size={14} className="text-text-tertiary" />}
       </div>
       
@@ -59,6 +64,19 @@ const LogRow = ({ msg }: { msg: A2AMessage }) => {
             <pre className="p-4 text-[11px] text-text-tertiary whitespace-pre-wrap font-mono">
               {JSON.stringify(msg.payload || msg, null, 2)}
             </pre>
+            {(msg.zeroGCID || msg.zeroGTxn) && (
+              <div className="px-4 pb-4 flex flex-col gap-1 border-t border-background-tertiary pt-2 mt-[-8px]">
+                <div className="text-[10px] uppercase font-bold text-blue-base opacity-70">0G Audit Trail</div>
+                {msg.zeroGCID && <div className="text-[10px] font-mono text-text-tertiary">CID: <span className="text-text-secondary">{msg.zeroGCID}</span></div>}
+                {msg.zeroGTxn && (
+                  <div className="text-[10px] font-mono text-text-tertiary">
+                    TXN: <a href={`https://chainscan-galileo.0g.ai/tx/${msg.zeroGTxn}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
+                      {msg.zeroGTxn.slice(0, 24)}...
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

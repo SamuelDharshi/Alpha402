@@ -111,9 +111,9 @@ function NodeCard({ x, y, w = 170, h = 80, role, name, color, state, detail, sco
 
       {/* detail line 1 */}
       {detail && (
-        <text x="12" y="50" fill={done ? color : COL.muted}
+        <text x="12" y="52" fill={done ? color : COL.muted}
           fontSize="9" fontFamily={SG} fontWeight={done ? "600" : "400"}>
-          {detail.slice(0, 35)}{detail.length > 35 ? "…" : ""}
+          {detail.slice(0, 28)}{detail.length > 28 ? "…" : ""}
         </text>
       )}
 
@@ -152,7 +152,7 @@ export function PipelineGraph() {
   const last = (types: string[]) =>
     [...messages].reverse().find(m => types.includes(m.type));
 
-  const stratMsg = last(["STRATEGY_PARSED", "COMMANDER_RECEIVED"]);
+  const stratMsg = last(["STRATEGY_PARSED"]);
   const intelMsg = last(["INTEL_WATCHING", "TRIGGER_FIRED", "PRICE_CHECK"]);
   const riskMsg  = last(["RISK_APPROVED", "RISK_REJECTED", "RISK_SCORING"]);
   const execMsg  = last(["EXECUTION_CONFIRMED", "EXECUTION_SUBMITTED", "EXECUTION_FAILED"]);
@@ -175,22 +175,18 @@ export function PipelineGraph() {
   const bEx = execMsg?.type === "EXECUTION_SUBMITTED" || execMsg?.type === "EXECUTION_CONFIRMED";
 
   const now = Date.now();
-  const lastStrat = last(["STRATEGY_PARSED", "COMMANDER_RECEIVED"]);
-  const lastTerm  = last(["EXECUTION_CONFIRMED", "EXECUTION_FAILED", "RISK_REJECTED"]);
-  
-  const stratTime = Number(lastStrat?.timestamp || 0);
-  const termTime  = Number(lastTerm?.timestamp || 0);
+  const stratTime = Number(stratMsg?.timestamp || 0);
+  const execTime  = Number(execMsg?.timestamp || 0);
 
-  // A pipeline is "active" if a new strategy started after the last termination
-  // OR if the termination happened very recently (within 10s).
-  const isRecentlyTerminated = lastTerm && (now - termTime < 10000);
-  const isActiveSession = (stratTime > 0 && stratTime > termTime) || isRecentlyTerminated;
+  // A pipeline is "active" if a new strategy started after the last execution
+  // OR if the last execution is very recent (within 10s).
+  const isRecentlyFinished = (execMsg?.type === "EXECUTION_CONFIRMED" || execMsg?.type === "EXECUTION_FAILED") && (now - execTime < 10000);
+  const isActiveSession = stratTime > execTime || isRecentlyFinished;
 
-  // For visual states, use the current messages
   const riskOk   = isActiveSession && (riskMsg?.type === "RISK_APPROVED" || (execTime >= stratTime && !!execMsg));
   const riskDone = isActiveSession && (riskMsg?.type === "RISK_APPROVED" || riskMsg?.type === "RISK_REJECTED" || (execTime >= stratTime && !!execMsg));
   const execDone = isActiveSession && execMsg?.type === "EXECUTION_CONFIRMED";
-  const cmdDone  = isActiveSession && !!lastStrat;
+  const cmdDone  = isActiveSession && !!stratMsg;
   const intelDone= isActiveSession && (intelMsg?.type === "TRIGGER_FIRED" || (execTime >= stratTime && !!execMsg));
 
   // Active status overrides for glowing while "in-progress"
@@ -215,31 +211,31 @@ export function PipelineGraph() {
       {/* ── Wires ── */}
 
       {/* USER → CMD */}
-      <Wire d="M240,68 L240,96" active={isActiveSession && cmdDone && !bCI && !bCR} done={cmdDone}
+      <Wire d="M240,68 L240,96" active={cmdDone && !bCI && !bCR} done={cmdDone}
         color={COL.cmd} bz={[240,68,240,75,240,88,240,96]} tick={tick} />
 
       {/* CMD → INTEL */}
       <Wire d="M176,155 C160,175 130,210 110,232"
-        active={isActiveSession && bCI} done={cmdDone}
+        active={bCI} done={cmdDone}
         color={COL.intel} bz={[176,155,160,175,130,210,110,232]} tick={tick} />
 
       {/* CMD → RISK */}
       <Wire d="M304,155 C320,175 350,210 370,232"
-        active={isActiveSession && bCR} done={cmdDone}
+        active={bCR} done={cmdDone}
         color={COL.risk} bz={[304,155,320,175,350,210,370,232]} tick={tick} />
 
       {/* INTEL → CONS */}
       <Wire d="M110,312 C110,345 180,370 220,380"
-        active={isActiveSession && bIC} done={intelDone}
+        active={bIC} done={intelDone}
         color={COL.intel} bz={[110,312,110,345,180,370,220,380]} tick={tick} />
 
       {/* RISK → CONS */}
       <Wire d="M370,312 C370,345 300,370 260,380"
-        active={isActiveSession && bRC} done={riskDone}
+        active={bRC} done={riskDone}
         color={riskOk ? COL.exec : COL.risk} bz={[370,312,370,345,300,370,260,380]} tick={tick} />
 
       {/* CONS → EXEC */}
-      <Wire d="M240,420 L240,458" active={isActiveSession && bEx} done={riskDone && riskOk}
+      <Wire d="M240,420 L240,458" active={bEx} done={riskDone && riskOk}
         color={COL.exec} bz={[240,420,240,432,240,446,240,458]} tick={tick} />
 
       {/* ── Junction dots ── */}
@@ -256,7 +252,7 @@ export function PipelineGraph() {
       {/* ── Nodes ── */}
 
       {/* USER INTENT */}
-      <NodeCard x={240} y={44} w={200} h={74}
+      <NodeCard x={240} y={44} w={200} h={50}
         role="input" name="User Intent"
         color={COL.cmd}
         state={cmdDone ? "done" : "idle"}

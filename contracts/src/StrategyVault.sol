@@ -16,14 +16,21 @@ contract StrategyVault is ReentrancyGuard, Ownable {
 
     mapping(bytes32 => Strategy) public strategies;
     mapping(bytes32 => uint256) public strategyBalances;
+    mapping(address => bool) public authorizedExecutors;
 
     event StrategyCreated(bytes32 indexed strategyId, address owner, uint256 maxPositionWei, uint256 stopLossPercent, uint256 maxGasGwei);
     event TradeExecuted(bytes32 indexed strategyId, address token, uint256 amount);
     event StrategyPaused(bytes32 indexed strategyId);
     event StrategyResumed(bytes32 indexed strategyId);
     event EmergencyStop(bytes32 indexed strategyId);
+    event ExecutorSet(address indexed executor, bool authorized);
 
     constructor() Ownable(msg.sender) {}
+
+    function setAuthorizedExecutor(address executor, bool authorized) external onlyOwner {
+        authorizedExecutors[executor] = authorized;
+        emit ExecutorSet(executor, authorized);
+    }
 
     function createStrategy(
         uint256 maxPositionWei,
@@ -67,7 +74,12 @@ contract StrategyVault is ReentrancyGuard, Ownable {
     ) external nonReentrant {
         Strategy storage strategy = strategies[strategyId];
         require(strategy.active, "Strategy not active");
-        require(msg.sender == strategy.owner || msg.sender == owner(), "Not authorised");
+        require(
+            msg.sender == strategy.owner || 
+            msg.sender == owner() || 
+            authorizedExecutors[msg.sender], 
+            "Not authorised"
+        );
         require(amount <= strategy.maxPositionWei, "Exceeds max position");
         require(tx.gasprice <= strategy.maxGasGwei * 1e9, "Gas too high");
 

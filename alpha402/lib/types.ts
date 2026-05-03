@@ -35,6 +35,8 @@ export interface A2AMessage {
   content: string;
   timestamp: number | string;
   payload?: Record<string, unknown>;
+  zeroGCID?: string;
+  zeroGTxn?: string;
 }
 
 export interface AgentState {

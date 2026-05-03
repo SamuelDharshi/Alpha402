@@ -1,176 +1,228 @@
-# Alpha402
+# Alpha402 — Autonomous DeFi Agent Crew
 
-Alpha402 is an autonomous multi-agent DeFi trading system built for the ETHGlobal Open Agents 2026 hackathon. It utilizes a crew of specialized AI agents to execute intent-based trading strategies on Uniswap v4 via Unichain, leveraging cutting-edge sponsor technologies for storage, communication, and execution.
+> *Your autonomous trading crew, deployed in one message.*
 
-## 🚀 Overview
+[![ETHGlobal Open Agents](https://img.shields.io/badge/ETHGlobal-Open%20Agents%202026-blue?style=flat-square)](https://ethglobal.com/showcase/shawarma-orchestrate-rfyhe)
+[![Sepolia](https://img.shields.io/badge/Network-Sepolia%20Testnet-purple?style=flat-square)](https://sepolia.etherscan.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-The Alpha402 platform allows users to deploy a personalized fleet of AI agents using natural language. Instead of manually monitoring charts and worrying about MEV extraction, users simply message the Telegram bot (e.g., "Buy 1 ETH when the price dips below $3000"). The agent crew handles the rest: watching price feeds 24/7, scoring the risk of the trade, and executing the transaction securely.
+---
 
-### Core Features
+## What is Alpha402?
 
-- **Intent-Based Trading:** Define strategies in plain English via Telegram.
-- **Multi-Agent Orchestration:** A specialized crew (Commander, Intel, Risk, Execution) handles parsing, monitoring, risk assessment, and execution.
-- **DeFi Execution:** Integrates with Uniswap v4 hooks for precise trading.
-- **Cyberpunk 3D Dashboard:** A visually stunning React Three Fiber (R3F) dashboard to monitor your agents' activity and x402 micropayments in real-time.
+Alpha402 is a **multi-agent autonomous DeFi trading system** that watches markets, reasons about risk, and executes on-chain — triggered entirely by a single Telegram message.
 
-## 🛠️ Technology Stack
+You tell it what to do. It handles the rest, 24/7.
 
-- **Frontend:** Next.js 14, TailwindCSS, React Three Fiber (R3F), Zustand
-- **Backend/Agents:** Node.js, `tsx`, ethers.js, Groq SDK
-- **Blockchain/Infrastructure:**
-  - **Unichain:** Target network for low-latency DeFi execution.
-  - **0G Storage:** Decentralized logging and state persistence for agents.
-  - **Gensyn AXL:** P2P mesh communication layer between agents.
-  - **KeeperHub:** Reliable, MEV-protected transaction execution.
-  - **Uniswap v4:** Trading and liquidity hooks.
-
-## 🤖 Multi-Agent Workflow Sequence
-
-The system operates through a coordinated sequence of agent interactions:
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Bot as Telegram Bot
-    participant CMD as Commander Agent
-    participant INT as Intel Agent
-    participant RSK as Risk Agent
-    participant EXC as Execution Agent
-    participant KH as KeeperHub / Chain
-
-    User->>Bot: "Buy 1 ETH when price < $3000"
-    Bot->>CMD: Forward intent
-    CMD->>CMD: Parse intent into JSON Strategy
-    CMD->>INT: Deploy monitoring task (Strategy ID)
-    
-    loop Every 10 Seconds
-        INT->>INT: Poll DexScreener API (x402 payment)
-    end
-    
-    Note over INT: Price drops below $3000
-    INT->>CMD: Trigger Condition Met
-    CMD->>RSK: Request Risk Score
-    
-    RSK->>RSK: Run decentralized inference (Gensyn)
-    Note over RSK: Evaluates slippage, liquidity, MEV risk
-    RSK-->>CMD: Risk Score: APPROVED
-    
-    CMD->>EXC: Execute Trade (Strategy ID)
-    EXC->>KH: Submit signed transaction
-    KH-->>EXC: Transaction Confirmed
-    EXC-->>CMD: Execution Success
-    CMD-->>Bot: "Trade executed successfully! P&L tracked."
-    Bot-->>User: Notification sent
+```
+You: "buy ETH when it drops below $2500"
+Alpha402: [watches] → [reasons] → [executes] → Tx confirmed ✅
 ```
 
-## 🏗️ Project Structure
+---
 
-- `frontend/`: The Next.js 14 Web3 dashboard with a fully interactive 3D command center.
-- `agents/`: The backend agent crew logic, managing the AXL P2P mesh and LLM inference.
-- `bot/`: The Telegram bot interface for interacting with the system.
-- `contracts/`: Hardhat workspace for custom Uniswap v4 hooks and Alpha402 payment contracts.
-- `shared/`: Shared TypeScript types, utility functions, and constants.
+## Architecture
 
-## � Hackathon Submission Coverage
-
-### Required submission fields
-## 🏗️ Hackathon Submission Coverage
-
-Alpha402 integrates **5 sponsor technologies** into a single autonomous workflow.
-
-### 🛡️ 1. 0G Labs (Storage & Compute)
-*   **0G Storage**: [agents/src/storage/zeroG.ts](agents/src/storage/zeroG.ts) — All agent messages and strategy metadata are persisted immutably.
-*   **0G Compute**: [agents/src/ai/zeroGCompute.ts](agents/src/ai/zeroGCompute.ts) — Uses TEE-verified inference (`processResponse`) to prove AI reasoning.
-*   **iNFT (ERC-7857)**: [contracts/src/AgentRegistry.sol](contracts/src/AgentRegistry.sol) — Each agent (Commander, Intel, etc.) is minted as an iNFT on startup to manage ownership and reputation.
-
-### 🦄 2. Uniswap Foundation
-*   **Uniswap API**: [agents/src/agents/execution/index.ts](agents/src/agents/execution/index.ts) — Real-time price fetching and trade simulation via Uniswap v4 testnet pools.
-*   **Developer Feedback**: [FEEDBACK.md](FEEDBACK.md) — 6 specific pain points and 4 feature requests for the Uniswap v4 Hook DX.
-
-### 🎖️ 3. Gensyn AXL
-*   **P2P Mesh**: [agents/src/bus/axl.ts](agents/src/bus/axl.ts) — Decentralized agent-to-agent communication via AXL nodes.
-*   **Separate Nodes**: The system runs 4 concurrent AXL nodes (ports 8765-8768) to ensure zero central coordination.
-
-### 🤖 4. ENS (Ethereum Name Service)
-*   **Identity**: [shared/src/ens.ts](shared/src/ens.ts) — Agent identity resolution (`commander.alpha402.eth`).
-*   **Metadata**: Agent roles and strategy IDs are resolved via ENS text records to enable discovery.
-
-### 💚 5. KeeperHub
-*   **Execution Layer**: [agents/src/agents/execution/index.ts](agents/src/agents/execution/index.ts) — Routes all trades via KeeperHub REST API for MEV protection.
-*   **x402 Payments**: [contracts/src/AgentPaymentManager.sol](contracts/src/AgentPaymentManager.sol) — Agents pay each other micro-USDC for data and risk scoring via the x402 standard.
+```
+Telegram Bot (@Alpha402bot)
+        │
+        ▼
+┌───────────────┐
+│   COMMANDER   │  Parses intent → builds strategy (0G AI)
+└──────┬────────┘
+       │
+  ┌────┴────┐
+  │         │
+┌─▼──┐  ┌──▼──┐
+│INTEL│  │RISK │  Watches price feeds (x402) + scores risk (0G TEE)
+└─┬──┘  └──┬──┘
+  └────┬───┘
+       ▼
+┌──────────────┐
+│  CONSENSUS   │  Commander verdict — YES or NO
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│  EXECUTION   │  KeeperHub → Uniswap v4 → on-chain tx
+└──────────────┘
+       │
+       ▼
+  Dashboard (localhost:3000/dashboard)
+  Live pipeline visualization
+```
 
 ---
 
-## 🛠️ Protocol Features & SDKs Used
+## Sponsor Integrations
 
-| Sponsor | Features Used | SDKs / Tools |
-|---------|---------------|--------------|
-| **0G Labs** | Storage KV, TEE Inference, iNFT | `@0gfoundation/0g-compute-ts-sdk`, `Indexer`, `MemData` |
-| **Uniswap** | v4 Hooks, Quoting, Unichain | `v4-core`, `v4-periphery`, `ethers.js` |
-| **Gensyn** | P2P Routing, A2A Messaging | `AXL Binary`, `Local Mesh Simulator` |
-| **ENS** | Name Resolution, Text Records | `ethers.js (ENS Resolver)`, `PublicResolver` |
-| **KeeperHub** | REST API Execution, x402 | `KeeperHub REST V1`, `AgentPaymentManager.sol` |
+| Sponsor | Usage |
+|---|---|
+| **0G Compute Network** | TEE-verified AI inference for Commander strategy parsing and Risk scoring |
+| **0G Storage** | Every A2A message persisted on-chain for audit trail and recovery |
+| **Gensyn AXL** | P2P encrypted mesh for agent-to-agent communication (fallback: in-process EventEmitter) |
+| **KeeperHub** | Guaranteed execution with keeper bots — retries on gas spikes |
+| **Uniswap v4** | DeFi execution layer with hooks support |
+| **ENS** | Agent identities: `commander.alpha402.eth`, `intel.alpha402.eth`, etc. |
+| **x402 Protocol** | Micropayments for price data feeds consumed by Intel agent |
 
 ---
 
-## 👨‍💻 Submission Details
-*   **Project Name:** Alpha402
-*   **Short Description:** An autonomous multi-agent swarm for intent-based DeFi trading, powered by 0G persistence, Gensyn P2P comms, and Uniswap execution.
-*   **Demo Video:** [TODO: Insert Link]
-*   **Live Demo:** [TODO: Insert Link]
-*   **Team:** [TODO: Your Name / Telegram / X]
+## Stack
 
-### Demo and integration notes
+- **Frontend**: Next.js 16, Tailwind CSS v4, Zustand, Space Grotesk / Bebas Neue
+- **Backend**: Node.js, TypeScript, WebSocket (ws), tsx
+- **AI**: 0G Compute Network (TEE-verified Llama inference)
+- **Storage**: 0G Decentralised Storage
+- **Blockchain**: Ethers.js, Sepolia testnet, Solidity contracts
+- **Bot**: Grammy (Telegram Bot API)
 
-- Run the full agent flow with `npm run test:agents`
-- Start the agent mesh with `npm run dev:agents`
-- Start the dashboard with `npm run dev`
-- Start the Telegram bot with `npm run dev:bot`
-- If you have the AXL binary installed, run one node per agent on ports 8765-8768 to demonstrate separate-node communication
-- Required feedback files are included at [`FEEDBACK.md`](FEEDBACK.md) and [`FEEDBACK_KEEPERHUB.md`](FEEDBACK_KEEPERHUB.md)
+---
 
-## �🏃 Getting Started
+## Live Demo
+
+- **Dashboard**: [alpha402.vercel.app](https://alpha402.vercel.app/dashboard)
+- **Landing**: [alpha402.vercel.app](https://alpha402.vercel.app)
+- **Telegram Bot**: [@Alpha402bot](https://t.me/Alpha402bot)
+- **StrategyVault Contract**: [`0x7e4198E452921E32c30eeEfc9d58e63810b835D6`](https://sepolia.etherscan.io/address/0x7e4198E452921E32c30eeEfc9d58e63810b835D6)
+- **Confirmed tx**: [`0x5382e3de...`](https://sepolia.etherscan.io/tx/0x5382e3de24343205d834bbbba8b95ab569612bfc02607d4bdae245b5a4e27306)
+
+---
+
+## Repository Structure
+
+```
+Alpha402/
+├── alpha402/          # Next.js frontend (dashboard + landing page)
+│   ├── app/
+│   │   ├── page.tsx           # Landing page
+│   │   └── dashboard/page.tsx # Mission Control dashboard
+│   ├── components/
+│   │   ├── dashboard/PipelineGraph.tsx  # Live agent flow SVG
+│   │   └── landing/                     # Hero, marquee, features
+│   └── lib/
+│       ├── store.ts           # Zustand store + WebSocket client
+│       └── types.ts           # Shared type definitions
+│
+├── agents/            # Multi-agent backend (Node.js)
+│   └── src/
+│       ├── agents/            # Commander, Intel, Risk, Execution
+│       ├── bus/               # AgentBus (EventEmitter + AXL P2P)
+│       ├── ws/server.ts       # WebSocket dashboard bridge
+│       └── index.ts           # Entrypoint — boots all 4 agents
+│
+├── bot/               # Telegram bot (Grammy)
+│   └── src/index.ts
+│
+├── shared/            # Shared TypeScript types (A2AMessage, Strategy, etc.)
+│
+└── contracts/         # Solidity — StrategyVault, PaymentsProcessor
+```
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- Node.js (v20+)
-- npm
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/SamuelDharshi/Alpha402.git
-   cd Alpha402
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   # Fill in the required keys in .env
-   ```
+- Node.js 20+
+- pnpm 9+
+- A Sepolia RPC endpoint (Alchemy/Infura)
+- Telegram Bot Token (from @BotFather)
+- 0G Compute API key
 
-### Running the Project locally
-The system is managed from the root directory using npm workspaces.
+### 1. Clone & install
 
-1. **Start the Agent Backend:**
-   ```bash
-   npm run dev:agents
-   ```
-   *(This starts the Commander, Intel, Risk, and Execution agents and exposes the WebSocket server on port 3001).*
+```bash
+git clone https://github.com/SamuelDharshi/Alpha402.git
+cd Alpha402
+pnpm install
+```
 
-2. **Start the Frontend Dashboard:**
-   In a new terminal window:
-   ```bash
-   npm run dev
-   ```
-   *(The dashboard will be available at `http://localhost:3000`).*
+### 2. Configure environment
 
-3. **Start the Telegram Bot (Optional):**
-   ```bash
-   npm run dev:bot
-   ```
+```bash
+cp .env.example .env
+```
 
-## 📜 License
-MIT
+Edit `.env`:
+
+```env
+# Blockchain
+SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
+PRIVATE_KEY=0x...
+
+# Telegram
+TELEGRAM_BOT_TOKEN=your_bot_token
+
+# 0G Network
+ZERO_G_RPC_URL=https://evmrpc-test.0g.ai
+ZERO_G_PRIVATE_KEY=0x...
+
+# 0G Compute (AI inference)
+ZG_COMPUTE_ENDPOINT=https://api.0g.ai
+ZG_API_KEY=your_key
+
+# Frontend
+NEXT_PUBLIC_WS_URL=ws://localhost:3001
+NEXT_PUBLIC_TELEGRAM_BOT_URL=https://t.me/Alpha402bot
+```
+
+### 3. Run locally
+
+```bash
+# Terminal 1 — Agent crew
+npm run dev:agents
+
+# Terminal 2 — Telegram bot
+npm run dev:bot
+
+# Terminal 3 — Dashboard
+npm run dev
+# → http://localhost:3000
+```
+
+### 4. Send your first intent
+
+Open Telegram → [@Alpha402bot](https://t.me/Alpha402bot) → type:
+
+```
+buy ETH when it drops below $2500
+```
+
+Watch the dashboard pipeline light up in real-time.
+
+---
+
+## Dashboard Features
+
+- **Live Pipeline Graph** — visualizes the exact agent workflow (USER INTENT → COMMANDER → INTEL + RISK → CONSENSUS → EXECUTION)
+- **Agent Live Feed** — real-time A2A message log with typed icons (Heroicons / Phosphor / React Icons)
+- **Control Panel** — dispatch strategies directly from the UI, view confirmed transactions with Etherscan links
+- **WebSocket Bridge** — auto-reconnects to the agent bus on `ws://localhost:3001`
+
+---
+
+## Smart Contracts (Sepolia)
+
+| Contract | Address |
+|---|---|
+| StrategyVault | `0x7e4198E452921E32c30eeEfc9d58e63810b835D6` |
+| PaymentsProcessor | `0xDFA20Faa8A0094B5dC3065b3315F8F818971eB39` |
+
+---
+
+## Hackathon
+
+Built for **ETHGlobal Open Agents 2026**.
+
+Sponsor prize tracks targeted:
+- 🥇 0G Network — AI + Storage integration
+- 🥇 Gensyn — AXL P2P agent mesh
+- 🥇 KeeperHub — guaranteed on-chain execution
+- 🥇 Uniswap v4 — DeFi execution layer
+
+---
+
+## License
+
+MIT © 2026 Samuel Dharshi

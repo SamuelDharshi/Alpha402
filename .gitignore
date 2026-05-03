@@ -26,7 +26,7 @@ lerna-debug.log*
 **/coverage.json
 **/.openzeppelin/
 **/out/
-**/lib/
+contracts/lib/
 **/broadcast/
 
 # Turbo

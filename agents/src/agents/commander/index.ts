@@ -83,26 +83,16 @@ export class CommanderAgent {
 
   async parseStrategy(input: string, owner: string): Promise<Strategy> {
     try {
-      // Immediate acknowledgment for UI feedback
-      await this.bus.publish({
-        id: crypto.randomUUID(),
-        from: 'commander',
-        to: 'user',
-        type: 'COMMANDER_RECEIVED',
-        timestamp: Date.now(),
-        payload: { input }
-      });
-
       console.log(`[Commander] Parsing intent for ${owner}: "${input}"`);
       console.log('[Commander] Calling 0G Compute Network (decentralized AI inference)...');
 
-      const content = await callWithBroker(
+      const response = await callWithBroker(
         [{ role: 'user', content: input }],
         SYSTEM_PROMPT
       );
 
-      const parsed = JSON.parse(content || '{}');
-      console.log('[Commander] 0G Compute parsed:', parsed);
+      const parsed = JSON.parse(response.content || '{}');
+      console.log('[Commander] 0G Compute parsed:', parsed, ' (Audit ID:', response.chatId, ')');
 
       const maxPositionWei   = ethers.parseEther(String(parsed.maxPositionEth ?? 0.01));
       const stopLossPercent  = BigInt((parsed.stopLossPercent ?? 5) * 100); // basis points

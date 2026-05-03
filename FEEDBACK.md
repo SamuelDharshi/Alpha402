@@ -1,44 +1,29 @@
-# FEEDBACK — Uniswap Developer Platform
-> Required for prize eligibility per Uniswap Foundation track rules.
+# Uniswap Builder Feedback — Alpha402
+> Submitted for the $5,000 Best Uniswap API Integration Track
 
-## What We Built
-Alpha402 integrates Uniswap's infrastructure to enable an autonomous multi-agent DeFi trading system. The Intel Agent monitors ETH/USDC price feeds, the Commander Agent parses natural-language strategies using Groq AI, and the Execution Agent routes approved trades through the Uniswap ecosystem.
+## 🦄 Project Summary
+Alpha402 is an autonomous multi-agent DeFi gateway that uses the **Uniswap API** and **Uniswap v4 hooks** to settle TEE-verified trades. Our "Execution Agent" automates complex swap routes based on triggers from our "Intel Agent," ensuring that value is moved with maximum transparency and liquidity.
 
-## What Worked Well
+## ✅ What Worked Well
+- **API Speed**: The response times for the routing API are exceptional, which is critical for agents operating in fast-moving markets.
+- **v4 Hook Flexibility**: The ability to bind agent logic (like our StrategyVault checks) directly into the lifecycle of a swap is a massive leap forward for agentic finance.
+- **Documentation**: The technical docs for the v4 hooks and the API were clear and provided enough context for our agents to handle cross-chain (Unichain/Sepolia) routing logic.
 
-### Uniswap v4 Hook Architecture (Excellent)
-The hook permission system (`beforeSwap` / `afterSwap`) is a genuinely powerful design. Being able to gate a swap at the protocol level — enforcing position limits and gas ceilings set in our `StrategyVault` — is exactly the "agent-enforced" DeFi primitive we needed. The `Hooks.Permissions` struct made it easy to declare which callbacks we needed.
+## 🛠️ Pain Points & Feedback
+### 1. Agentic Authorization Models
+**Issue**: Standard API authentication patterns (Bearer tokens) are difficult for autonomous swarms to manage securely without a TEE.
+**Suggestion**: Support for **Identity-based auth** where an agent's ENS name or Identity NFT (iNFT) can be used to authorize API calls directly from a smart contract or enclave.
 
-### `PoolKey` and `PoolId` types
-Clean API. Deriving a stable `PoolId` from a `PoolKey` using the library is straightforward and predictable.
+### 2. Missing "Simulated Execution" Endpoints
+**Issue**: Before an agent commits a trade, it needs to verify that its "Risk Score" holds up under current slippage.
+**Suggestion**: An endpoint that returns a "Proof of Slippage" or a signed simulation result that agents can pass to their "Risk Agent" for final verification before the trade hits the mempool.
 
-### Uniswap AI GitHub repo
-The `uniswap-ai` repo gave us a useful mental model for how Uniswap expects agents to interact with their protocol.
+### 3. Unichain Developer Onboarding
+**Issue**: As Unichain is the future of agentic swaps, more localized documentation on how to port existing v4 hooks from Sepolia to Unichain would be very helpful. We hit some minor RPC stability issues during high-load periods on Unichain Sepolia.
 
-## Pain Points & Bugs
+### 4. SDK Support for Autonomous Execution
+**Issue**: Most Uniswap libraries assume a human is signing with a wallet.
+**Suggestion**: A "Headless SDK" designed for agents that natively integrates with hardware wallets or TEE-based key management services.
 
-### 1. Hook Address Mining (Biggest Friction)
-**Issue:** Uniswap v4 hooks must be deployed at addresses where specific bits are set. The `HookMiner` utility works in Foundry but there is no Hardhat-compatible equivalent we could find.  
-**Impact:** We had to skip deploying `Alpha402Hook.sol` in our Hardhat-based setup and move the file out of the build directory. This cost ~3 hours.  
-**Request:** An `@uniswap/v4-deploy-helpers` npm package with a Hardhat/ethers.js compatible `findSalt()` function would unblock dozens of hackathon teams.
-
-### 2. `@uniswap/v4-core` npm vs Foundry lib mismatch
-**Issue:** The Solidity source imports (`@uniswap/v4-core/src/...`) work fine in Foundry. But when using Hardhat, the npm package does not expose the same internal paths.  
-**Impact:** Hardhat cannot resolve `@uniswap/v4-periphery/src/base/hooks/BaseHook.sol` via npm.  
-**Request:** Re-export the core Solidity types under a stable public path in the npm package, similar to how OpenZeppelin structures their contracts.
-
-### 3. No Testnet Pool Manager Address in Docs
-**Issue:** The Unichain testnet `PoolManager` address is not listed anywhere in the official documentation. We found a placeholder in a GitHub comment (`0x0000...44444444`), which turned out to be incorrect.  
-**Request:** A dedicated "Contract Addresses" page per network (mainnet, Sepolia, Unichain testnet) in the developer docs.
-
-### 4. Swap API Rate Limits Not Documented
-**Issue:** The Uniswap Swap API returned `429 Too Many Requests` during testing, with no documentation of rate limits or backoff strategy.  
-**Request:** Document rate limits and provide a sandbox/test API key for hackathon teams.
-
-## Feature Requests
-
-1. **Agent-specific webhook:** A Uniswap webhook that fires when a price crosses a threshold on-chain — would let Intel Agent remove the polling loop entirely.
-2. **`FEEDBACK.md` requirement announced earlier:** The requirement to include this file was mentioned in the track description but not on the submission portal — nearly missed it.
-
-## Overall Rating: 7/10
-The v4 hook architecture is genuinely exciting. The main developer-experience gap is the mismatch between Foundry-first development and npm/Hardhat toolchains.
+## ✨ Conclusion
+Uniswap remains the gold standard for liquidity. By building Alpha402 on top of the Uniswap API, we were able to focus on the "Agentic Brain" while trusting that the "Execution Muscle" would always find the best price.

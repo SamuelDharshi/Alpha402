@@ -91,7 +91,7 @@ export class RiskAgent {
     if (score.verdict === 'APPROVE') {
       await this.approve(strategyId, score);
     } else {
-      await this.reject(strategyId, score.reasoning);
+      await this.reject(strategyId, score);
     }
   }
 
@@ -119,11 +119,10 @@ Trade details:
 
 Respond ONLY with the JSON object.`;
 
-      const content = await callWithBroker([{ role: 'user', content: prompt }]);
-      const result  = JSON.parse(content || '{}') as RiskScore;
-
-      console.log(`[Risk] 0G Compute score: ${result.score}/10 → ${result.verdict}`);
-      return result;
+      const response = await callWithBroker([{ role: 'user', content: prompt }]);
+      const result  = JSON.parse(response.content || '{}') as RiskScore;
+      
+      return { ...result, chatId: response.chatId };
 
     } catch (err) {
       console.error('[Risk] 0G Compute inference failed:', err);
@@ -148,7 +147,12 @@ Respond ONLY with the JSON object.`;
     });
   }
 
-  private async reject(strategyId: string, reason: string) {
+  private async reject(strategyId: string, reasonOrScore: string | RiskScore) {
+    const reason = typeof reasonOrScore === 'string' ? reasonOrScore : reasonOrScore.reasoning;
+    const payload = typeof reasonOrScore === 'string' 
+      ? { reasoning: reason, verdict: 'REJECT' }
+      : { ...reasonOrScore, verdict: 'REJECT' };
+
     console.log(`[Risk] ❌ REJECTED — ${reason}`);
     await this.bus.publish({
       id: crypto.randomUUID(),
@@ -157,7 +161,7 @@ Respond ONLY with the JSON object.`;
       type: 'RISK_REJECTED',
       timestamp: Date.now(),
       strategyId,
-      payload: { reasoning: reason, verdict: 'REJECT' },
+      payload,
     });
   }
 }

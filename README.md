@@ -19,15 +19,24 @@
 
 ## 💡 The Idea
 
-Alpha402 is a **multi-agent autonomous DeFi trading system** designed to remove the friction of manual trading. Instead of navigating complex DEX UIs or monitoring charts 24/7, you simply tell your "crew" what you want to achieve in plain English.
+# 🤖 Alpha402 — Telegram-Native Agentic Payment Gateway
 
-The system is powered by a specialized crew of four AI agents that communicate via a decentralized P2P mesh, reason using TEE-verified AI, persist their thoughts on decentralized storage, and execute trades through a fail-safe keeper network.
+Alpha402 is a specialized multi-agent crew that enables **autonomous agentic payments** and DeFi execution directly through Telegram. By combining **x402 payment rails** with **0G TEE-verified intelligence**, Alpha402 allows users to deploy autonomous financial swarms that can pay for their own resources, settle fees, and execute complex DeFi strategies without manual intervention.
 
-### Why Alpha402?
-- **Intent-Based:** No complicated scripts. "Buy ETH if it hits $2400" is all you need.
-- **Autonomous:** Once dispatched, the crew works 24/7.
-- **Verifiable:** All AI reasoning is performed in TEEs (via 0G Compute) and logged on-chain (via 0G Storage).
-- **Fail-Safe:** Execution is handled by KeeperHub, ensuring trades land even during gas spikes.
+### 🌟 The Core Value
+The system solves the "Agentic Payment Problem": How can an AI agent autonomously settle a transaction or pay a service fee while remaining verifiable and decentralized? 
+
+Through a single Telegram message, users deploy a crew that coordinates via a **Gensyn P2P mesh**, uses **0G Compute** for reasoning, and **KeeperHub** for guaranteed execution of **x402 payment flows**.
+
+---
+
+## 🚀 Key Features
+
+- **Telegram-Native Intent:** No complex UIs. Deploy, monitor, and fund your agent swarm via a seamless chat interface.
+- **Autonomous Agentic Payments:** Native integration with **x402** and **AgentPaymentManager** for automated fee settlement and reward distribution.
+- **TEE-Verified Intelligence:** All payment logic and risk scoring are processed via **0G Compute Network** in Trusted Execution Environments.
+- **Immutable Audit Trail:** Every agentic payment and communication is hashed and persisted to **0G Storage**.
+nd even during gas spikes.
 
 ---
 

@@ -43,6 +43,3 @@ Thumbs.db
 **/.next/
 **/out
 **/src/**/*.js
-
-# Duplicate/build directories
-alpha402/

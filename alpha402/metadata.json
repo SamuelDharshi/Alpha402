@@ -1,0 +1,6 @@
+{
+  "name": "Alpha402",
+  "description": "Autonomous multi-agent trading crew deployed in one message. Orchestrates Commander, Intel, Risk, and Execution agents for 24/7 DeFi strategy automation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

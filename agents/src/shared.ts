@@ -77,6 +77,18 @@ export class ENSIdentity {
     try { return this.provider ? await this.provider.lookupAddress(address) : null; } catch { return null; }
   }
 
+  /** 
+   * Verifies that a given address owns the expected agent ENS name.
+   * This turns ENS from a cosmetic label into a functional security layer.
+   */
+  async verifyAgent(agentId: string, address: string): Promise<boolean> {
+    const expectedName = this.getAgentName(agentId);
+    const resolvedAddress = await this.resolveName(expectedName);
+    
+    if (!resolvedAddress) return false;
+    return resolvedAddress.toLowerCase() === address.toLowerCase();
+  }
+
   getAgentName(agentId: string): string {
     return `${agentId.toLowerCase()}.alpha402.eth`;
   }

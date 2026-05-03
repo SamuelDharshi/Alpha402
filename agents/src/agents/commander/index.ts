@@ -83,6 +83,16 @@ export class CommanderAgent {
 
   async parseStrategy(input: string, owner: string): Promise<Strategy> {
     try {
+      // Immediate acknowledgment for UI feedback
+      await this.bus.publish({
+        id: crypto.randomUUID(),
+        from: 'commander',
+        to: 'user',
+        type: 'COMMANDER_RECEIVED',
+        timestamp: Date.now(),
+        payload: { input }
+      });
+
       console.log(`[Commander] Parsing intent for ${owner}: "${input}"`);
       console.log('[Commander] Calling 0G Compute Network (decentralized AI inference)...');
 

@@ -201,14 +201,52 @@ Once the system is running, follow these steps to deploy your first strategy:
 | **0G Compute Network** | TEE-verified AI inference for Commander strategy parsing and Risk scoring |
 | **0G Storage** | Every A2A message and strategy state persisted on-chain for audit trail |
 | **Gensyn AXL** | P2P encrypted mesh for agent-to-agent communication |
-| **KeeperHub** | Guaranteed execution with keeper bots — retries on gas spikes |
-| **Uniswap v4** | DeFi execution layer with custom hooks for strategy enforcement |
-| **ENS** | Agent identities: `commander.alpha402.eth`, `intel.alpha402.eth`, etc. |
+| **ENS** | Agent identity layer: `commander.alpha402.eth`, `intel.alpha402.eth`, etc. |
+
+## 🐝 Swarm Coordination (A2A)
+
+Alpha402 operates as a **decentralized swarm**. Unlike traditional "master-slave" architectures, our agents coordinate via a stateless, event-driven mesh:
+1.  **Transport:** All agents communicate via **Gensyn AXL** (P2P Mesh). If an agent goes offline, the bus automatically handles the message queue.
+2.  **State Management:** The **Commander** acts as the orchestrator, but the **Intel** and **Risk** agents operate autonomously. They listen for specific message types (`INTEL_WATCHING`, `TRIGGER_FIRED`) and respond only when their specialized conditions are met.
+3.  **Consensus:** Execution only occurs once the **Risk Agent** publishes a `RISK_APPROVED` message with a TEE-signed score, which the **Execution Agent** verifies on-chain.
+
+## 🎨 iNFT & Embedded Intelligence
+
+Each agent in the Alpha402 crew is registered as an **iNFT** on Sepolia (via the `AgentRegistry` contract). 
+- **Proof of Identity:** The iNFT's `tokenURI` is a **0G Storage CID** (e.g., `0g://intel-metadata`).
+- **Embedded Intelligence:** This metadata contains the agent's **System Prompt** and **Reasoning Model** configuration. By linking the iNFT to 0G Storage, we ensure that the agent's "brain" is persistent, decentralized, and verifiable. 
+
+## 🛠️ SDKs & Features Used
+- **0G Storage SDK:** `@0glabs/0g-ts-sdk` for immutable audit trails.
+- **0G Compute SDK:** `@0gfoundation/0g-compute-ts-sdk` for TEE-verified AI inference.
+- **Gensyn AXL:** Custom P2P transport layer for resilient swarm communication.
+- **KeeperHub:** Direct Execution REST API for guaranteed trade settlement.
+- **Uniswap v4:** Hook-based strategy enforcement on Sepolia.
+
+## 🔗 Links to Key Files
+
+- [README.md](README.md) — Main project overview
+- [KEEPERHUB_GUIDE.md](KEEPERHUB_GUIDE.md) — KeeperHub integration write-up
+- [FEEDBACK_KEEPERHUB.md](FEEDBACK_KEEPERHUB.md) — KeeperHub actionable feedback
+- [FEEDBACK.md](FEEDBACK.md) — Uniswap v4 actionable feedback
+- **Example Agents (The Swarm):**
+  - [CommanderAgent.ts](agents/src/agents/commander/index.ts) — AI Orchestrator
+  - [IntelAgent.ts](agents/src/agents/intel/index.ts) — Price Monitor (x402)
+  - [RiskAgent.ts](agents/src/agents/risk/index.ts) — TEE Scorer (0G Compute)
+  - [ExecutionAgent.ts](agents/src/agents/execution/index.ts) — KeeperHub Settler
+- [AgentBus.ts](agents/src/bus/index.ts) — P2P Mesh (Gensyn) & Storage (0G)
 
 ### Links & Resources
 - **Demo Video:** [🔴 Awaiting Link]
 - **Live Dashboard:** [alpha402.vercel.app](https://alpha402.vercel.app/dashboard)
 - **Smart Contracts:** [`0x7e4198E452921E32c30eeEfc9d58e63810b835D6`](https://sepolia.etherscan.io/address/0x7e4198E452921E32c30eeEfc9d58e63810b835D6)
+
+### Team & Contact
+- **Project Name:** Alpha402
+- **Lead Developer:** Samuel Dharshi
+- **Telegram:** @SamuelDharshi
+- **X (Twitter):** @SamuelDharshi_
+- **GitHub:** [SamuelDharshi/Alpha402](https://github.com/SamuelDharshi/Alpha402)
 
 ---
 

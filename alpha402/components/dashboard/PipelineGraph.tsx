@@ -43,7 +43,7 @@ function Wire({ d, active, done, color, bz, tick }: {
       {/* static dim wire */}
       <path d={d} fill="none" stroke={COL.dim} strokeWidth="1.5" />
       {/* done — solid colored wire */}
-      {done && <path d={d} fill="none" stroke={color} strokeWidth="1.5" opacity="0.5" />}
+      {done && <path d={d} fill="none" stroke={color} strokeWidth="1.5" opacity="0.8" />}
       {/* active — animated dash + dot */}
       {active && <>
         <path d={d} fill="none" stroke={color} strokeWidth="1.5"
@@ -111,9 +111,9 @@ function NodeCard({ x, y, w = 170, h = 80, role, name, color, state, detail, sco
 
       {/* detail line 1 */}
       {detail && (
-        <text x="12" y="52" fill={done ? color : COL.muted}
+        <text x="12" y="50" fill={done ? color : COL.muted}
           fontSize="9" fontFamily={SG} fontWeight={done ? "600" : "400"}>
-          {detail.slice(0, 28)}{detail.length > 28 ? "…" : ""}
+          {detail.slice(0, 35)}{detail.length > 35 ? "…" : ""}
         </text>
       )}
 
@@ -152,7 +152,7 @@ export function PipelineGraph() {
   const last = (types: string[]) =>
     [...messages].reverse().find(m => types.includes(m.type));
 
-  const stratMsg = last(["STRATEGY_PARSED"]);
+  const stratMsg = last(["STRATEGY_PARSED", "COMMANDER_RECEIVED"]);
   const intelMsg = last(["INTEL_WATCHING", "TRIGGER_FIRED", "PRICE_CHECK"]);
   const riskMsg  = last(["RISK_APPROVED", "RISK_REJECTED", "RISK_SCORING"]);
   const execMsg  = last(["EXECUTION_CONFIRMED", "EXECUTION_SUBMITTED", "EXECUTION_FAILED"]);
@@ -172,13 +172,32 @@ export function PipelineGraph() {
   const bCR = beam("COMMANDER", "RISK");
   const bIC = beam("INTEL", "EXECUTION") || beam("INTEL", "COMMANDER");
   const bRC = beam("RISK", "EXECUTION")  || beam("RISK", "COMMANDER");
-  const bEx = execMsg?.type === "EXECUTION_CONFIRMED";
+  const bEx = execMsg?.type === "EXECUTION_SUBMITTED" || execMsg?.type === "EXECUTION_CONFIRMED";
 
-  const riskOk   = riskMsg?.type === "RISK_APPROVED";
-  const riskDone = riskMsg?.type === "RISK_APPROVED" || riskMsg?.type === "RISK_REJECTED";
-  const execDone = execMsg?.type === "EXECUTION_CONFIRMED";
-  const cmdDone  = !!stratMsg;
-  const intelDone= intelMsg?.type === "TRIGGER_FIRED";
+  const now = Date.now();
+  const lastStrat = last(["STRATEGY_PARSED", "COMMANDER_RECEIVED"]);
+  const lastTerm  = last(["EXECUTION_CONFIRMED", "EXECUTION_FAILED", "RISK_REJECTED"]);
+  
+  const stratTime = Number(lastStrat?.timestamp || 0);
+  const termTime  = Number(lastTerm?.timestamp || 0);
+
+  // A pipeline is "active" if a new strategy started after the last termination
+  // OR if the termination happened very recently (within 10s).
+  const isRecentlyTerminated = lastTerm && (now - termTime < 10000);
+  const isActiveSession = (stratTime > 0 && stratTime > termTime) || isRecentlyTerminated;
+
+  // For visual states, use the current messages
+  const riskOk   = isActiveSession && (riskMsg?.type === "RISK_APPROVED" || (execTime >= stratTime && !!execMsg));
+  const riskDone = isActiveSession && (riskMsg?.type === "RISK_APPROVED" || riskMsg?.type === "RISK_REJECTED" || (execTime >= stratTime && !!execMsg));
+  const execDone = isActiveSession && execMsg?.type === "EXECUTION_CONFIRMED";
+  const cmdDone  = isActiveSession && !!lastStrat;
+  const intelDone= isActiveSession && (intelMsg?.type === "TRIGGER_FIRED" || (execTime >= stratTime && !!execMsg));
+
+  // Active status overrides for glowing while "in-progress"
+  const intelActive = isActiveSession && (intelMsg?.type === "INTEL_WATCHING" || intelMsg?.type === "PRICE_CHECK" || bCI) && !intelDone;
+  const riskActive  = isActiveSession && (riskMsg?.type === "RISK_SCORING" || bCR) && !riskDone;
+  const execActive  = isActiveSession && (execMsg?.type === "EXECUTION_SUBMITTED" || bEx) && !execDone;
+  const consActive  = isActiveSession && ((riskDone && !execDone) || bIC || bRC);
 
   const st = (done: boolean, active: boolean): "idle" | "active" | "done" =>
     done ? "done" : active ? "active" : "idle";
@@ -196,48 +215,48 @@ export function PipelineGraph() {
       {/* ── Wires ── */}
 
       {/* USER → CMD */}
-      <Wire d="M240,68 L240,96" active={cmdDone && !bCI && !bCR} done={cmdDone}
+      <Wire d="M240,68 L240,96" active={isActiveSession && cmdDone && !bCI && !bCR} done={cmdDone}
         color={COL.cmd} bz={[240,68,240,75,240,88,240,96]} tick={tick} />
 
       {/* CMD → INTEL */}
       <Wire d="M176,155 C160,175 130,210 110,232"
-        active={bCI} done={intelDone || bIC}
+        active={isActiveSession && bCI} done={cmdDone}
         color={COL.intel} bz={[176,155,160,175,130,210,110,232]} tick={tick} />
 
       {/* CMD → RISK */}
       <Wire d="M304,155 C320,175 350,210 370,232"
-        active={bCR} done={riskDone || bRC}
+        active={isActiveSession && bCR} done={cmdDone}
         color={COL.risk} bz={[304,155,320,175,350,210,370,232]} tick={tick} />
 
       {/* INTEL → CONS */}
       <Wire d="M110,312 C110,345 180,370 220,380"
-        active={bIC} done={riskDone}
+        active={isActiveSession && bIC} done={intelDone}
         color={COL.intel} bz={[110,312,110,345,180,370,220,380]} tick={tick} />
 
       {/* RISK → CONS */}
       <Wire d="M370,312 C370,345 300,370 260,380"
-        active={bRC} done={riskDone}
+        active={isActiveSession && bRC} done={riskDone}
         color={riskOk ? COL.exec : COL.risk} bz={[370,312,370,345,300,370,260,380]} tick={tick} />
 
       {/* CONS → EXEC */}
-      <Wire d="M240,420 L240,458" active={bEx} done={execDone}
+      <Wire d="M240,420 L240,458" active={isActiveSession && bEx} done={riskDone && riskOk}
         color={COL.exec} bz={[240,420,240,432,240,446,240,458]} tick={tick} />
 
       {/* ── Junction dots ── */}
       <Dot x={240} y={68}  color={COL.cmd}   active={cmdDone} />
       <Dot x={240} y={96}  color={COL.cmd}   active={cmdDone} />
-      <Dot x={110} y={232} color={COL.intel} active={bCI || intelDone} />
-      <Dot x={110} y={312} color={COL.intel} active={bIC} />
-      <Dot x={370} y={232} color={COL.risk}  active={bCR || riskDone} />
-      <Dot x={370} y={312} color={COL.risk}  active={bRC} />
+      <Dot x={110} y={232} color={COL.intel} active={cmdDone} />
+      <Dot x={110} y={312} color={COL.intel} active={intelDone} />
+      <Dot x={370} y={232} color={COL.risk}  active={cmdDone} />
+      <Dot x={370} y={312} color={COL.risk}  active={riskDone} />
       <Dot x={240} y={380} color={riskOk ? COL.exec : COL.cons} active={riskDone} />
       <Dot x={240} y={420} color={riskOk ? COL.exec : COL.cons} active={riskDone} />
-      <Dot x={240} y={458} color={COL.exec}  active={execDone} />
+      <Dot x={240} y={458} color={COL.exec}  active={riskDone && riskOk} />
 
       {/* ── Nodes ── */}
 
       {/* USER INTENT */}
-      <NodeCard x={240} y={44} w={200} h={50}
+      <NodeCard x={240} y={44} w={200} h={74}
         role="input" name="User Intent"
         color={COL.cmd}
         state={cmdDone ? "done" : "idle"}
@@ -257,7 +276,7 @@ export function PipelineGraph() {
       <NodeCard x={110} y={272} w={185} h={86}
         role="intel" name="Intel Agent"
         color={COL.intel}
-        state={st(intelDone, bCI)}
+        state={st(intelDone, intelActive)}
         detail={intelDone ? "🔔 Trigger fired" : intelMsg ? "👁 Watching feeds" : undefined}
         score={ip?.price ? `Price: $${ip.price}` : "[x402] paid price feed"}
       />
@@ -266,7 +285,7 @@ export function PipelineGraph() {
       <NodeCard x={370} y={272} w={185} h={86}
         role="risk · 0g tee" name="Risk Agent"
         color={COL.risk}
-        state={st(riskDone, bCR)}
+        state={st(riskDone, riskActive)}
         detail={riskOk ? "✅ Approved" : riskDone ? "❌ Rejected" : riskMsg ? "Scoring…" : undefined}
         score={rp?.score ? `Score: ${rp.score}/10 · ${rp.reasoning?.slice(0, 18)}…` : undefined}
       />
@@ -275,7 +294,7 @@ export function PipelineGraph() {
       <NodeCard x={240} y={400} w={200} h={66}
         role="consensus" name={riskDone ? (riskOk ? "YES — Execute" : "NO — Rejected") : "Consensus"}
         color={riskOk ? COL.exec : COL.cons}
-        state={st(riskDone, bIC || bRC)}
+        state={st(riskDone, consActive)}
         detail={riskDone ? (riskOk ? "Forwarding to execution" : "Strategy rejected") : undefined}
       />
 
@@ -283,7 +302,7 @@ export function PipelineGraph() {
       <NodeCard x={240} y={498} w={220} h={80}
         role="execution · keeperhub" name="Execution"
         color={COL.exec}
-        state={st(execDone, bEx)}
+        state={st(execDone, execActive)}
         detail={execDone ? "✅ Trade confirmed" : execMsg?.type === "EXECUTION_SUBMITTED" ? "Submitting tx…" : undefined}
         score={ep?.txHash ? `Tx: ${ep.txHash.slice(0, 24)}…` : execDone ? "Via KeeperHub · Sepolia" : undefined}
       />

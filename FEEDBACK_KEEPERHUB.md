@@ -1,4 +1,4 @@
-# KeeperHub Builder Feedback — TradeDesk Hackathon
+# KeeperHub Builder Feedback — Alpha402
 > Submitted for the $500 Builder Feedback Bounty
 
 ## Integration Summary

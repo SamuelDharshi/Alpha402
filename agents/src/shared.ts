@@ -42,6 +42,7 @@ export interface A2AMessage {
   payload: Record<string, any>;
   x402Cost?: number;
   zeroGCID?: string;
+  zeroGTxn?: string;
 }
 
 export interface RiskScore {

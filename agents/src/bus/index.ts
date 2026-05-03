@@ -68,8 +68,9 @@ export class AgentBus extends EventEmitter {
     console.log(`[Bus] ${statusIcon} ${fromENS} → ${message.to} : ${message.type} ${isVerified ? '(ENS Verified)' : '(Unverified)'}`);
 
     // Persist to 0G Storage (audit trail) — async, don't wait for it to route locally
-    this.zeroG.uploadJSON(message).then(cid => {
-      message.zeroGCID = cid;
+    this.zeroG.uploadJSON(message).then(res => {
+      message.zeroGCID = res.cid;
+      message.zeroGTxn = res.tx;
     }).catch(err => {
       console.warn(`[Bus] 0G persist failed:`, (err as Error).message);
     });

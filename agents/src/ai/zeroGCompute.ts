@@ -104,15 +104,18 @@ export async function callWithBroker(
     });
 
     const data   = await response.json() as any;
-    const chatID = response.headers.get('ZG-Res-Key') || response.headers.get('zg-res-key') || data.id;
+    const chatId = response.headers.get('ZG-Res-Key') || response.headers.get('zg-res-key') || data.id;
 
     // TEE signature verification — proves the model ran in a secure enclave
-    if (chatID) {
-      const valid = await broker.inference.processResponse(providerAddress, chatID);
-      console.log(`[0G Compute] TEE verification: ${valid ? '✅ VALID' : '⚠️  signature mismatch'}`);
+    if (chatId) {
+      const valid = await broker.inference.processResponse(providerAddress, chatId);
+      console.log(`[0G Compute] TEE verification: ${valid ? '✅ VALID' : '⚠️  signature mismatch'} (ID: ${chatId})`);
     }
 
-    return data.choices?.[0]?.message?.content || '{}';
+    return {
+      content: data.choices?.[0]?.message?.content || '{}',
+      chatId
+    };
 
   } catch (err) {
     console.error('[0G Compute] Broker call failed, retrying with API-key mode:', (err as Error).message);
@@ -124,7 +127,7 @@ export async function callWithBroker(
 async function callWithApiKey(
   messages: Array<{ role: string; content: string }>,
   systemPrompt?: string
-): Promise<string> {
+): Promise<{ content: string; chatId?: string }> {
   const client = await getZeroGClient();
   const all = systemPrompt
     ? [{ role: 'system' as const, content: systemPrompt }, ...messages]
@@ -142,5 +145,8 @@ async function callWithApiKey(
     response_format: { type: 'json_object' },
     temperature: 0,
   });
-  return res.choices[0].message.content || '{}';
+  return {
+    content: res.choices[0].message.content || '{}',
+    chatId: (res as any).id
+  };
 }

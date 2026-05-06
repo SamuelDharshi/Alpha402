@@ -18,6 +18,11 @@ export class RiskAgent {
       { staticNetwork: true }
     );
 
+    const pk = process.env.PRIVATE_KEY;
+    if (pk) {
+      this.wallet = new ethers.Wallet(pk, this.provider);
+    }
+
     const vaultAddress = process.env.STRATEGY_VAULT_ADDRESS;
     if (vaultAddress) {
       this.vaultContract = new ethers.Contract(
@@ -35,7 +40,7 @@ export class RiskAgent {
     if (resolved) console.log(`[ENS] ✅ Verified Identity: risk.alpha402.eth -> ${resolved}`);
 
     const registryAddr = process.env.AGENT_REGISTRY_ADDRESS;
-    if (registryAddr && process.env.PRIVATE_KEY) {
+    if (registryAddr && this.wallet) {
       try {
         const registryABI = ['function mintAgent(uint8, bytes32, string) external returns (uint256)'];
         const registry = new ethers.Contract(registryAddr, registryABI, this.wallet);

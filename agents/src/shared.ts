@@ -49,6 +49,7 @@ export interface RiskScore {
   score: number;
   reasoning: string;
   verdict: 'APPROVE' | 'REJECT';
+  chatId?: string; // TEE Verification ID
 }
 
 export interface ExecutionResult {

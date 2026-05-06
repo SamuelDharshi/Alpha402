@@ -59,7 +59,7 @@ export async function getZeroGClient(): Promise<OpenAI> {
 export async function callWithBroker(
   messages: Array<{ role: string; content: string }>,
   systemPromptOverride?: string
-): Promise<string> {
+): Promise<{ content: string; chatId?: string }> {
   const providerAddress = process.env.ZG_PROVIDER_ADDRESS;
   const privateKey      = process.env.PRIVATE_KEY;
   const rpcUrl          = process.env.ZG_RPC_URL || 'https://evmrpc-testnet.0g.ai';
@@ -76,7 +76,10 @@ export async function callWithBroker(
       response_format: { type: 'json_object' },
       temperature: 0,
     });
-    return res.choices[0].message.content || '{}';
+    return {
+      content: res.choices[0].message.content || '{}',
+      chatId: (res as any).id
+    };
   }
 
   try {

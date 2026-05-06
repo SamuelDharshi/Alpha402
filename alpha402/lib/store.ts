@@ -118,6 +118,7 @@ export const useAlphaStore = create<AlphaStoreState>((set, get) => ({
             timestamp: raw.timestamp || Date.now(),
             payload:   raw.payload,
           };
+          if (get().messages.some(m => m.id === transformed.id)) return;
           console.log('[Alpha402 WS] addMessage:', transformed.type, 'from', sender, 'payload:', raw.payload);
           get().addMessage(transformed);
           get().updateAgentStatus(sender, 'ACTIVE');
@@ -125,21 +126,26 @@ export const useAlphaStore = create<AlphaStoreState>((set, get) => ({
           
           if (raw.type === 'STRATEGY_PARSED' && raw.payload?.strategy) {
             const s = raw.payload.strategy;
-            const newStrategy: Strategy = {
-              id: s.id || Math.random().toString(),
-              input: s.naturalLanguageInput || raw.payload?.input || 'Strategy',
-              status: 'ACTIVE',
-              params: {
-                token: s.token || 'ETH',
-                trigger: `${s.triggerCondition?.includes('BELOW') ? '<' : '>'} $${s.triggerValue}`,
-                maxPosition: `${(Number(s.maxPositionWei) / 1e18).toFixed(2)} ${s.token || 'ETH'}`,
-                stopLoss: `${(s.stopLossPercent / 100).toFixed(0)}%`,
-                maxGas: `${s.maxGasGwei} gwei`
-              },
-              pnl: '+$0.00',
-              lastTriggered: 'Just now'
-            };
-            set(state => ({ strategies: [newStrategy, ...state.strategies] }));
+            set(state => {
+              // Check if strategy already exists
+              if (state.strategies.some(st => st.id === s.id)) return state;
+              
+              const newStrategy: Strategy = {
+                id: s.id || Math.random().toString(),
+                input: s.naturalLanguageInput || raw.payload?.input || 'Strategy',
+                status: 'ACTIVE',
+                params: {
+                  token: s.token || 'ETH',
+                  trigger: `${s.triggerCondition?.includes('BELOW') ? '<' : '>'} $${s.triggerValue}`,
+                  maxPosition: `${(Number(s.maxPositionWei) / 1e18).toFixed(2)} ${s.token || 'ETH'}`,
+                  stopLoss: `${(s.stopLossPercent / 100).toFixed(0)}%`,
+                  maxGas: `${s.maxGasGwei} gwei`
+                },
+                pnl: '+$0.00',
+                lastTriggered: 'Just now'
+              };
+              return { strategies: [newStrategy, ...state.strategies] };
+            });
           }
 
           setTimeout(() => get().updateAgentStatus(sender, 'IDLE'), 5000);

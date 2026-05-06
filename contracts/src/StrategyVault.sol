@@ -32,12 +32,14 @@ contract StrategyVault is ReentrancyGuard, Ownable {
         emit ExecutorSet(executor, authorized);
     }
 
+    uint256 private _strategyNonce;
+
     function createStrategy(
         uint256 maxPositionWei,
         uint256 stopLossPercent,
         uint256 maxGasGwei
     ) external payable returns (bytes32 strategyId) {
-        strategyId = keccak256(abi.encodePacked(msg.sender, block.timestamp, block.prevrandao));
+        strategyId = keccak256(abi.encodePacked(msg.sender, block.timestamp, block.prevrandao, _strategyNonce++));
         
         strategies[strategyId] = Strategy({
             owner: msg.sender,

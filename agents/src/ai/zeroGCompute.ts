@@ -86,7 +86,7 @@ export async function callWithBroker(
     const { createZGComputeNetworkBroker } = await import('@0gfoundation/0g-compute-ts-sdk');
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet   = new ethers.Wallet(privateKey, provider);
-    const broker   = await createZGComputeNetworkBroker(wallet);
+    const broker   = await createZGComputeNetworkBroker(wallet as any);
 
     const { endpoint, model } = await broker.inference.getServiceMetadata(providerAddress);
     const headers             = await broker.inference.getRequestHeaders(providerAddress);

@@ -23,6 +23,59 @@
 
 ---
 
+## 🏗️ System Architecture
+
+Alpha402 operates as a decentralized mesh of specialized agents. The system is designed for high resilience, using a P2P communication layer and on-chain identity verification anchored to the 0G ecosystem.
+
+### 1. Architecture Flowchart
+```mermaid
+graph TD
+    User([User Telegram]) -->|Intent| Commander[Commander Agent]
+    Commander -->|Verify| ENS[ENS Identity Layer]
+    Commander -->|Store| ZGS[0G Storage]
+    Commander -->|Reason| ZGC[0G Compute TEE]
+    
+    subgraph "The Agent Swarm"
+        Commander <--> Intel[Intel Agent]
+        Commander <--> Risk[Risk Agent]
+        Commander <--> Execution[Execution Agent]
+    end
+    
+    Intel -->|Market Feed| Market[Live Data]
+    Risk -->|Inference| ZGC
+    Execution -->|Submit| KH[KeeperHub]
+    KH -->|Swap| Uni[Uniswap v4]
+```
+
+### 2. The Verifiable Transaction Lifecycle
+```mermaid
+sequenceDiagram
+    participant U as User (Telegram)
+    participant C as Commander (0G AI)
+    participant I as Intel (Market)
+    participant R as Risk (0G TEE)
+    participant E as Execution (Settle)
+    participant S as 0G Storage (Audit)
+
+    U->>C: "Analyze & Buy ETH if < $2500"
+    C->>S: Store Strategy & Intent (Immutable)
+    C->>I: Monitor Price Condition
+    loop 24/7 Monitoring
+        I->>I: Check High-Frequency Feed
+    end
+    I->>C: Trigger Fired!
+    C->>R: Request Risk Score
+    R->>S: Log Gas/Slippage Check
+    R->>R: 0G Compute TEE Inference
+    R->>C: Risk Approved
+    C->>E: Execute Trade
+    E->>E: Route via KeeperHub
+    E->>S: Log Final Tx Hash
+    E->>U: "Trade Confirmed! ✅"
+```
+
+---
+
 ## 🧠 0G Compute: Verifiable Intelligence Layer (TEE)
 
 The core "brain" of Alpha402 is decentralized via the **0G Compute Network**, specifically leveraging **Trusted Execution Environments (TEE)** to ensure that AI reasoning is tamper-proof and independently verifiable.

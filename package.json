@@ -6,7 +6,6 @@
     "bot",
     "contracts",
     "shared",
-    "frontend",
     "alpha402"
   ],
   "scripts": {
@@ -27,17 +26,12 @@
     "prettier": "^3.2.5",
     "tsx": "^4.21.0"
   },
-  "overrides": {
-    "three": "0.176.0",
-    "three-mesh-bvh": "0.8.0"
-  },
   "optionalDependencies": {
     "@esbuild/win32-x64": "^0.27.7"
   },
   "dependencies": {
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
-    "events": "^3.3.0",
-    "three": "0.176.0"
+    "events": "^3.3.0"
   }
 }

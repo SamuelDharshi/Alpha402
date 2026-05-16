@@ -90,7 +90,7 @@ export const useAlphaStore = create<AlphaStoreState>((set, get) => ({
     // Don't open a second socket if one is already open
     if (_ws && (_ws.readyState === WebSocket.OPEN || _ws.readyState === WebSocket.CONNECTING)) return;
 
-    const wsUrl = process.env.NEXT_PUBLIC_AGENT_WS_URL || 'wss://alpha402.onrender.com';
+    const wsUrl = process.env.NEXT_PUBLIC_AGENT_WS_URL || 'wss://alpha402-agents.onrender.com';
     const ws = new WebSocket(wsUrl);
     _ws = ws;
 

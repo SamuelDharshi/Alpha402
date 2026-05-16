@@ -1,4 +1,4 @@
-# Alpha402 — Autonomous DeFi Agent Crew
+# Alpha402 — The First Verifiable Autonomous Agent Hub
 
 ```text
        ___    __          __            __ __  ____ ___ 
@@ -9,253 +9,203 @@
            /_/                                            
 ```
 
-> **Your autonomous trading crew, deployed in one message.**
+> **The Unstoppable Swarm: Verifiable Intelligence, Immutable Strategy, Guaranteed Execution.**
 
-[![ETHGlobal Open Agents](https://img.shields.io/badge/ETHGlobal-Open%20Agents%202026-blue?style=flat-square)](https://ethglobal.com/showcase/shawarma-orchestrate-rfyhe)
-[![Sepolia](https://img.shields.io/badge/Network-Sepolia%20Testnet-purple?style=flat-square)](https://sepolia.etherscan.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-
----
-
-## 💡 The Idea
-
-# 🤖 Alpha402 — Telegram-Native Agentic Payment Gateway
-
-Alpha402 is a specialized multi-agent crew that enables **autonomous agentic payments** and DeFi execution directly through Telegram. By combining **x402 payment rails** with **0G TEE-verified intelligence**, Alpha402 allows users to deploy autonomous financial swarms that can pay for their own resources, settle fees, and execute complex DeFi strategies without manual intervention.
-
-### 🌟 The Core Value
-The system solves the "Agentic Payment Problem": How can an AI agent autonomously settle a transaction or pay a service fee while remaining verifiable and decentralized? 
-
-Through a single Telegram message, users deploy a crew that coordinates via a **Gensyn P2P mesh**, uses **0G Compute** for reasoning, and **KeeperHub** for guaranteed execution of **x402 payment flows**.
+[![Network-Sepolia](https://img.shields.io/badge/Network-Sepolia%20Testnet-purple?style=for-the-badge)](https://sepolia.etherscan.io)
+[![Powered By 0G](https://img.shields.io/badge/Powered%20By-0G%20Labs-orange?style=for-the-badge)](https://0g.ai)
+[![TEE-Verified](https://img.shields.io/badge/Security-TEE--Verified-green?style=for-the-badge)](https://0g.ai/compute)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 ---
 
-## 🚀 Key Features
+## 💡 The Vision
 
-- **Telegram-Native Intent:** No complex UIs. Deploy, monitor, and fund your agent swarm via a seamless chat interface.
-- **Autonomous Agentic Payments:** Native integration with **x402** and **AgentPaymentManager** for automated fee settlement and reward distribution.
-- **TEE-Verified Intelligence:** All payment logic and risk scoring are processed via **0G Compute Network** in Trusted Execution Environments.
-- **Immutable Audit Trail:** Every agentic payment and communication is hashed and persisted to **0G Storage**.
-nd even during gas spikes.
+**Alpha402** is a next-generation autonomous agent ecosystem designed to bridge the trust gap in decentralized finance. By combining **0G Compute** (TEE-verified intelligence) with **0G Storage** (immutable audit trails), we have built the first truly verifiable "Trading Crew" that operates 24/7 without human intervention.
+
+Users deploy a specialized swarm of agents via a single Telegram message. This swarm handles everything from market monitoring and risk scoring to precision execution, all while maintaining a cryptographic record of every decision made.
 
 ---
 
-## 🏗️ Architecture & Flow
+## 🏗️ System Architecture
 
-Alpha402 operates as a decentralized mesh of agents. Here is how the system components interact:
+Alpha402 operates as a decentralized mesh of specialized agents. The system is designed for high resilience, using a P2P communication layer and on-chain identity verification.
 
-### 1. High-Level System Overview
-```text
-  ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
-  │  TELEGRAM BOT  │ ────▶│   COMMANDER    │ ────▶│   0G COMPUTE   │
-  │  (User Intent) │      │  (Orchestrator)│      │  (AI Reasoning)│
-  └────────────────┘      └───────┬────────┘      └────────────────┘
-                                  │
-                  ┌───────────────┴───────────────┐
-                  ▼                               ▼
-          ┌──────────────┐                ┌──────────────┐
-          │    INTEL     │                │     RISK     │
-          │  (x402 Feed) │                │  (TEE Scorer)│
-          └───────┬──────┘                └───────┬──────┘
-                  │                               │
-                  └───────────────┬───────────────┘
-                                  ▼
-          ┌──────────────┐        │        ┌──────────────┐
-          │  EXECUTION   │◀───────┘        │  0G STORAGE  │
-          │ (KeeperHub)  │                 │ (Audit Log)  │
-          └───────┬──────┘                 └──────────────┘
-                  │
-                  ▼
-          ┌──────────────┐
-          │  UNISWAP v4  │
-          │ (On-Chain)   │
-          └──────────────┘
+### 1. High-Level Overview
+```mermaid
+graph TD
+    User([User Telegram]) -->|Intent| Commander[Commander Agent]
+    Commander -->|Verify| ENS[ENS Identity Layer]
+    Commander -->|Store| ZGS[0G Storage]
+    Commander -->|Reason| ZGC[0G Compute TEE]
+    
+    subgraph "The Agent Swarm"
+        Commander <--> Intel[Intel Agent]
+        Commander <--> Risk[Risk Agent]
+        Commander <--> Execution[Execution Agent]
+    end
+    
+    Intel -->|x402 Feed| Market[Live Market Data]
+    Risk -->|Inference| ZGC
+    Execution -->|Submit| KH[KeeperHub]
+    KH -->|Swap| Uni[Uniswap v4]
 ```
 
-### 2. Transaction Lifecycle (Sequence Diagram)
-
+### 2. The Verifiable Transaction Lifecycle
 ```mermaid
 sequenceDiagram
     participant U as User (Telegram)
     participant C as Commander (0G AI)
     participant I as Intel (x402)
     participant R as Risk (0G TEE)
-    participant E as Execution (KeeperHub)
-    participant S as Storage (0G Storage)
+    participant E as Execution (Settle)
+    participant S as 0G Storage (Audit)
 
     U->>C: "Buy ETH if < $2500"
-    C->>S: Log Intent
+    C->>S: Store Strategy & Intent (Immutable)
     C->>I: Monitor Price Condition
-    loop Watcher
-        I->>I: Check x402 Price
+    loop 24/7 Monitoring
+        I->>I: Check x402 Micropayment Feed
     end
-    I->>C: Condition Met!
+    I->>C: Trigger Fired!
     C->>R: Request Risk Score
-    R->>R: Analyze Slippage/Gas
-    R->>C: Risk Score: 95/100
-    C->>E: Execute Strategy
-    E->>S: Log Transaction
-    E->>U: "Tx Confirmed! ✅"
+    R->>S: Log Gas/Slippage Check
+    R->>R: 0G Compute TEE Inference
+    R->>C: Risk Approved (95/100)
+    C->>E: Execute Trade
+    E->>E: Route via KeeperHub
+    E->>S: Log Final Tx Hash
+    E->>U: "Trade Confirmed! ✅"
 ```
+
+---
+
+## 📉 The Market Pain Points
+
+### 1. The "Trust Gap" in AI Agents
+Most trading agents today are "black boxes." Users have no way to verify if an agent's decision was based on real data or if the agent was compromised. **Alpha402** solves this using **0G Compute (TEE)** to ensure that every risk assessment is performed in a secure enclave.
+
+### 2. The Execution Audit Crisis
+In high-frequency DeFi, tracking *why* a trade happened is as important as the trade itself. Traditional systems lose logs. **Alpha402** persists every agent-to-agent message to **0G Storage**, creating a permanent, immutable audit trail for every user strategy.
+
+### 3. Manual Fatigue & Fragmentation
+DeFi users are forced to manage 10+ tabs and set dozens of "dumb" price alerts. **Alpha402** collapses the entire stack — intent parsing, price watching, and execution — into a single, autonomous pipeline that costs less than a coffee to run.
+
+---
+
+## 🛠️ 0G Stack Integration (Deep Dive)
+
+### 🧠 0G Compute: Verifiable Intelligence
+We use the **0G Compute Network** to perform TEE-verified reasoning. The **Risk Agent** doesn't just guess; it runs a complex inference model within a Trusted Execution Environment to score trades based on live gas prices, slippage, and market volatility.
+
+```typescript
+// From agents/src/agents/risk/index.ts
+private async run0GInference(strategyId: string, payload: any, gasPriceGwei: number) {
+  console.log('[Risk] Calling 0G Compute Network for risk analysis (TEE-verified)...');
+  const prompt = `Evaluate this trade: Price $${payload.currentValue}, Gas ${gasPriceGwei} gwei. 
+                  Return JSON: {score: 1-10, verdict: "APPROVE" | "REJECT"}`;
+  
+  // Direct TEE-verified inference call
+  const response = await callWithBroker([{ role: 'user', content: prompt }]);
+  return JSON.parse(response.content);
+}
+```
+
+### 💾 0G Storage: The Immutable Memory
+Every communication between agents is hashed and uploaded to **0G Storage**. This ensures that if a user wants to audit their strategy weeks later, the evidence is cryptographically secured on-chain.
+
+```typescript
+// From agents/src/bus/index.ts
+async publish(message: A2AMessage): Promise<void> {
+  // Persist to 0G Storage (audit trail)
+  this.zeroG.uploadJSON(message).then(res => {
+    message.zeroGCID = res.cid; // Immutable Content ID
+    message.zeroGTxn = res.tx;  // Transaction Hash on 0G
+  });
+  
+  // Route to agent mesh...
+}
+```
+
+---
+
+## ⚡ Partner Ecosystem
+
+### 🎯 KeeperHub: Guaranteed Settlement
+We leverage **KeeperHub's Direct Execution API** to ensure that once a trade is approved by the Risk Agent, it is settled immediately on-chain. This eliminates the risk of "missing the dip" due to gas spikes or RPC failures.
+
+```typescript
+// From agents/src/agents/execution/index.ts
+const res = await fetch(`${KEEPERHUB_BASE}/api/execute/check-and-execute`, {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${apiKey}` },
+  body: JSON.stringify({
+    contractAddress: vaultAddress,
+    functionName:    'authoriseExecution',
+    action: {
+      contractAddress: vaultAddress,
+      functionName:    'executeChecked',
+      functionArgs:    JSON.stringify([strategyId, token, amount, '0x']),
+    }
+  })
+});
+```
+
+### 🦄 Uniswap v4: Precision Liquidity
+All swaps are routed through **Uniswap v4** hooks. This allows our agents to execute trades with optimized routing and customized logic (e.g., dynamic fee adjustments based on Risk Agent scores).
 
 ---
 
 ## 🤖 The Agent Crew
 
-Each agent in Alpha402 has a specific role, identity (ENS), and logic:
+Each agent in the swarm has a verified identity (ENS) and a specific role:
 
-### 🎯 **Commander** (`commander.alpha402.eth`)
-The brain of the operation. 
-- **Role:** Receives natural language from Telegram.
-- **Logic:** Uses **0G Compute** (Llama-3 via TEE) to parse "intent" into a structured `Strategy` object (Target, Trigger, Action).
-- **Orchestration:** Dispatches tasks to Intel and Risk agents.
-
-### 📡 **Intel** (`intel.alpha402.eth`)
-The eyes of the operation.
-- **Role:** Market monitoring.
-- **Logic:** Connects to **x402 Protocol** micropayment feeds to get real-time price data.
-- **Action:** Triggers the pipeline when the price condition defined by the Commander is met.
-
-### 🛡️ **Risk** (`risk.alpha402.eth`)
-The conscience of the operation.
-- **Role:** Verification & Safety.
-- **Logic:** Performs a final check right before execution. Verifies slippage, checks gas costs, and ensures the wallet has sufficient balance.
-- **Scoring:** Returns a confidence score. If < 80%, the trade is aborted.
-
-### ⚡ **Execution** (`execution.alpha402.eth`)
-The hands of the operation.
-- **Role:** On-chain settlement.
-- **Logic:** Routes the trade through **KeeperHub** for guaranteed execution.
-- **DEX:** Performs swaps using **Uniswap v4** hooks for optimized routing.
+- **Commander** (`commander.alpha402.eth`): The orchestrator. Parses natural language and coordinates the swarm.
+- **Intel** (`intel.alpha402.eth`): The observer. Monitors market conditions via high-frequency micropayment feeds.
+- **Risk** (`risk.alpha402.eth`): The validator. Uses 0G TEE to ensure every trade is safe and efficient.
+- **Execution** (`execution.alpha402.eth`): The settler. Finalizes trades via KeeperHub and Uniswap v4.
 
 ---
 
-## 🌐 The Infrastructure (P2P Mesh)
+## 🎮 Guide for Judges & Users
 
-Agents don't just talk; they form a resilient mesh using **Gensyn AXL**.
-
-```text
-          [COMMANDER]
-         /   (AXL)   \
-        /             \
-  [INTEL] ---------- [RISK]
-        \   (AXL)     /
-         \           /
-          [EXECUTION]
-```
-
-- **Gensyn AXL:** Provides an encrypted P2P communication layer.
-- **0G Storage:** Every A2A (Agent-to-Agent) message is hashed and stored on 0G, providing a permanent, immutable audit trail of the crew's decision-making process.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- **Node.js 20+**
-- **pnpm 9+**
-- **Environment Keys:** 0G API Key, Telegram Bot Token, Alchemy/Infura RPC URL.
-
-### 1. Installation
+### 1. Instant Deployment
+Clone and install dependencies in seconds:
 ```bash
 git clone https://github.com/SamuelDharshi/Alpha402.git
 cd Alpha402
 pnpm install
-```
-
-### 2. Configuration
-Copy `.env.example` to `.env` and fill in your keys:
-```bash
 cp .env.example .env
 ```
-*Crucial keys: `TELEGRAM_BOT_TOKEN`, `ZG_API_KEY`, `SEPOLIA_RPC_URL`.*
 
-### 3. Launching the System
-Alpha402 requires three components to run in parallel:
-
+### 2. Launch the Swarm
+The system runs in three layers. Open three terminals:
 ```bash
-# Terminal 1: The Agent Crew (The Backend)
+# Terminal 1: The AI Brain (Agents)
 npm run dev:agents
 
-# Terminal 2: The Telegram Bot (The Interface)
+# Terminal 2: The Interface (Telegram Bot)
 npm run dev:bot
 
-# Terminal 3: The Mission Control (The Dashboard)
+# Terminal 3: The Mission Control (Web Dashboard)
 npm run dev
 ```
 
----
-
-## 🎮 How to Use
-
-Once the system is running, follow these steps to deploy your first strategy:
-
-1.  **Open Telegram:** Search for your bot (or `@Alpha402bot` if using the live demo).
-2.  **Send Intent:** Type a command like:
-    - `"Buy 0.1 ETH when the price drops below $2350"`
-    - `"Sell my ETH if it goes above $2800"`
-3.  **Confirm:** The Commander will reply with a structured summary of the strategy.
-4.  **Monitor Dashboard:** Open `http://localhost:3000/dashboard`. You will see:
-    -   **The Pipeline Graph:** Lights up as agents communicate.
-    -   **Live Log:** See raw A2A messages being persisted to 0G Storage.
-5.  **Execution:** Once the trigger hits, the Execution agent will post a transaction link to the chat.
+### 3. Your First Trade
+1.  Open your Telegram Bot.
+2.  Send: `"Buy 0.01 ETH if the price hits $2400."`
+3.  Watch the **Commander** parse your intent.
+4.  Open the Dashboard (`localhost:3000`) to see the **0G Storage** CIDs appearing in real-time as agents talk.
 
 ---
 
-## 🏗️ Hackathon Submission Coverage
+## 🔗 Deployment Details (Sepolia)
 
-### Sponsor Integrations
-| Sponsor | Integration Detail |
+| Contract | Address |
 |---|---|
-| **0G Compute Network** | TEE-verified AI inference for Commander strategy parsing and Risk scoring |
-| **0G Storage** | Every A2A message and strategy state persisted on-chain for audit trail |
-| **Gensyn AXL** | P2P encrypted mesh for agent-to-agent communication |
-| **ENS** | Agent identity layer: `commander.alpha402.eth`, `intel.alpha402.eth`, etc. |
-
-## 🐝 Swarm Coordination (A2A)
-
-Alpha402 operates as a **decentralized swarm**. Unlike traditional "master-slave" architectures, our agents coordinate via a stateless, event-driven mesh:
-1.  **Transport:** All agents communicate via **Gensyn AXL** (P2P Mesh). If an agent goes offline, the bus automatically handles the message queue.
-2.  **State Management:** The **Commander** acts as the orchestrator, but the **Intel** and **Risk** agents operate autonomously. They listen for specific message types (`INTEL_WATCHING`, `TRIGGER_FIRED`) and respond only when their specialized conditions are met.
-3.  **Consensus:** Execution only occurs once the **Risk Agent** publishes a `RISK_APPROVED` message with a TEE-signed score, which the **Execution Agent** verifies on-chain.
-
-## 🎨 iNFT & Embedded Intelligence
-
-Each agent in the Alpha402 crew is registered as an **iNFT** on Sepolia (via the `AgentRegistry` contract). 
-- **Proof of Identity:** The iNFT's `tokenURI` is a **0G Storage CID** (e.g., `0g://intel-metadata`).
-- **Embedded Intelligence:** This metadata contains the agent's **System Prompt** and **Reasoning Model** configuration. By linking the iNFT to 0G Storage, we ensure that the agent's "brain" is persistent, decentralized, and verifiable. 
-
-## 🛠️ SDKs & Features Used
-- **0G Storage SDK:** `@0glabs/0g-ts-sdk` for immutable audit trails.
-- **0G Compute SDK:** `@0gfoundation/0g-compute-ts-sdk` for TEE-verified AI inference.
-- **Gensyn AXL:** Custom P2P transport layer for resilient swarm communication.
-- **KeeperHub:** Direct Execution REST API for guaranteed trade settlement.
-- **Uniswap v4:** Hook-based strategy enforcement on Sepolia.
-
-## 🔗 Links to Key Files
-
-- [README.md](README.md) — Main project overview
-- [KEEPERHUB_GUIDE.md](KEEPERHUB_GUIDE.md) — KeeperHub integration write-up
-- [FEEDBACK_KEEPERHUB.md](FEEDBACK_KEEPERHUB.md) — KeeperHub actionable feedback
-- [FEEDBACK.md](FEEDBACK.md) — Uniswap v4 actionable feedback
-- **Example Agents (The Swarm):**
-  - [CommanderAgent.ts](agents/src/agents/commander/index.ts) — AI Orchestrator
-  - [IntelAgent.ts](agents/src/agents/intel/index.ts) — Price Monitor (x402)
-  - [RiskAgent.ts](agents/src/agents/risk/index.ts) — TEE Scorer (0G Compute)
-  - [ExecutionAgent.ts](agents/src/agents/execution/index.ts) — KeeperHub Settler
-- [AgentBus.ts](agents/src/bus/index.ts) — P2P Mesh (Gensyn) & Storage (0G)
-
-### Links & Resources
-- **Demo Video:** [🔴 Awaiting Link]
-- **Live Dashboard:** [alpha402.vercel.app](https://alpha402.vercel.app/dashboard)
-- **Smart Contracts:** [`0x7e4198E452921E32c30eeEfc9d58e63810b835D6`](https://sepolia.etherscan.io/address/0x7e4198E452921E32c30eeEfc9d58e63810b835D6)
-
-### Team & Contact
-- **Project Name:** Alpha402
-- **Lead Developer:** Samuel Dharshi
-- **Telegram:** @SamuelDharshi
-- **X (Twitter):** @SamuelDharshi_
-- **GitHub:** [SamuelDharshi/Alpha402](https://github.com/SamuelDharshi/Alpha402)
+| **StrategyVault** | `0xf840458FF5d911701a2092c693B0442E4B33089C` |
+| **AgentPaymentManager** | `0xFceb11FB0093984e1c930964197B632D029a43b8` |
+| **AgentRegistry (iNFT)** | `0x2E0A3D2411de73D457E6970a338C494D2b340462` |
+| **Alpha402Hook** | `0x7e4198E452921E32c30eeEfc9d58e63810b835D6` |
 
 ---
 

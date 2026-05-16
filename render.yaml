@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install && npm run build --workspace=shared && npm run build --workspace=agents
-    startCommand: npm run start --workspace=agents
+    startCommand: cd agents && node dist/index.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -36,6 +36,8 @@ services:
         sync: false
       - key: MOCK_MODE
         value: "false"
+      - key: NODE_VERSION
+        value: "20.12.2"
 
   - type: worker
     name: alpha402-bot

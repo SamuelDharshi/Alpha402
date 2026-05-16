@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
   agents:
-    build: 
+    build:
       context: .
-      dockerfile: packages/agents/Dockerfile
+      dockerfile: agents/Dockerfile
     env_file: .env
     ports:
       - "3001:3001"
@@ -13,7 +13,7 @@ services:
   bot:
     build:
       context: .
-      dockerfile: packages/bot/Dockerfile
+      dockerfile: bot/Dockerfile
     env_file: .env
     depends_on:
       - agents

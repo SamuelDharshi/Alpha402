@@ -59,3 +59,23 @@ services:
       - key: NODE_VERSION
         value: "20.12.2"
 
+  - type: web
+    name: alpha402-frontend
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build --workspace=shared && npm run build --workspace=alpha402
+    startCommand: npm run start --workspace=alpha402
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_AGENT_WS_URL
+        value: wss://alpha402-agents.onrender.com
+      - key: NEXT_PUBLIC_TELEGRAM_BOT_URL
+        value: https://t.me/Alpha402bot
+      - key: NEXT_PUBLIC_STRATEGY_VAULT_ADDRESS
+        sync: false
+      - key: NEXT_PUBLIC_WALLETCONNECT_ID
+        sync: false
+      - key: NODE_VERSION
+        value: "20.12.2"
+

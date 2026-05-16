@@ -9,11 +9,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    turbo: {
-      root: '.',
-    },
-  },
+  output: 'standalone',
 }
 
 export default nextConfig

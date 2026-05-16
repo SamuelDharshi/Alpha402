@@ -1,7 +1,7 @@
 import React from "react"
 import type { Metadata } from 'next'
 import { Instrument_Sans, Instrument_Serif, JetBrains_Mono, Orbitron, Bebas_Neue, Comic_Neue, Dancing_Script, Space_Grotesk } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
+import { Analytics } from '@vercel/analytics/react'
 import { WsInitializer } from '@/components/providers/WsInitializer'
 import './globals.css'
 
